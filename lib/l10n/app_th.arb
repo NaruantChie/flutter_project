@@ -1,0 +1,17 @@
+{
+  "@appTitle": {"comment": "คำในหน้า HOME"},
+  "appTitle": "ชีวิตที่เหลืออยู่",
+  "startButton": "เริ่มต้น",
+  "aboutUsButton": "เกี่ยวกับเรา",
+  "supportButton": "สนับสนุน",
+  "description": "โปรแกรมที่กระตุ้นให้เราตระหนักว่าเรามีเวลาในชีวิตจำกัดและควรเร่งทำสิ่งสำคัญก่อนเวลาจะหมดลง",
+  "languageEnglish": "ภาษาอังกฤษ",
+  "languageThai": "ภาษาไทย",
+
+
+
+
+    "@about": {"comment": "คำในหน้า about"},
+    "about": "เกี่ยวกับเรา"
+  }
+  

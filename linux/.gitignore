@@ -1,0 +1,9 @@
+flutter/ephemeral
+build/
+.dart_tool/
+.idea/
+.packages
+.pub/
+*.iml
+*.lock
+*.log

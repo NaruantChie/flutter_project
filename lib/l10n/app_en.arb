@@ -1,0 +1,18 @@
+
+{
+    "@appTitle": {"comment": "คำในหน้า HOME"},
+    "appTitle": "Life Countdown",
+    "startButton": "Get Started",
+    "aboutUsButton": "About Us",
+    "supportButton": "Support Us",
+    "description": "This app will encourage us to realize that we have limited time in life. Therefore, it is imperative to do important things without negligence before the time runs out.",
+    "languageEnglish": "English",
+    "languageThai": "Thai",
+
+
+    "@about": {"comment": "คำในหน้า about"},
+    "about": "About Page"
+    
+    
+  }
+  
