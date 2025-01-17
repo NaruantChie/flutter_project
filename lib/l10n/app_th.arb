@@ -11,7 +11,34 @@
 
 
 
-    "@about": {"comment": "คำในหน้า about"},
-    "about": "เกี่ยวกับเรา"
+  "@selectDateHeader": {"comment": "คำในหน้า Select Date"},
+  "appBarTitle": "กลับ",
+  "selectDateHeader": "เลือกวันที่",
+  "selectDateSubHeader": "คุณเกิดเมื่อไหร่?",
+  "yearLabel": "ปี",
+  "monthLabel": "เดือน",
+  "dayLabel": "วัน",
+  "nextButton": "ถัดไป",
+  "snackBarMessage": "วันที่ที่เลือก: {date}",
+  "january": "มกราคม",
+  "february": "กุมภาพันธ์",
+  "march": "มีนาคม",
+  "april": "เมษายน",
+  "may": "พฤษภาคม",
+  "june": "มิถุนายน",
+  "july": "กรกฎาคม",
+  "august": "สิงหาคม",
+  "september": "กันยายน",
+  "october": "ตุลาคม",
+  "november": "พฤศจิกายน",
+  "december": "ธันวาคม",
+
+
+  
+  "@nextStepDescription": {"comment": "คำหน้า Description"},
+  "back": "ย้อนกลับ",
+  "nextStepDescription": "ถัดไป เว็บไซต์จะถามวันที่-เดือน-ปี ที่คุณคาดว่าจะเป็นวันสิ้นสุดของชีวิต เพื่อประเมินเวลาที่เหลือบนโลกนี้.",
+  "disclaimer": "โปรแกรมนี้ไม่ใช่โปรแกรมพยากรณ์ ดังนั้นเวลาในชีวิตคุณอาจหมดลงก่อนหรือหลังจากนี้.",
+  "next": "ถัดไป"
   }
   

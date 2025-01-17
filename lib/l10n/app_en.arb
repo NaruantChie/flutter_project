@@ -10,9 +10,34 @@
     "languageThai": "Thai",
 
 
-    "@about": {"comment": "คำในหน้า about"},
-    "about": "About Page"
-    
+    "@selectDateHeader": {"comment": "คำในหน้า Select Date"},
+  "appBarTitle": "Back",
+  "selectDateHeader": "Select Date",
+  "selectDateSubHeader": "When were you born?",
+  "yearLabel": "Year",
+  "monthLabel": "Month",
+  "dayLabel": "Day",
+  "nextButton": "Next",
+  "snackBarMessage": "Selected date: {date}",
+  "january": "January",
+  "february": "February",
+  "march": "March",
+  "april": "April",
+  "may": "May",
+  "june": "June",
+  "july": "July",
+  "august": "August",
+  "september": "September",
+  "october": "October",
+  "november": "November",
+  "december": "December",
+
+
+ "@nextStepDescription": {"comment": "คำหน้า Description"},
+  "back": "Back",
+  "nextStepDescription": "Next, the website will ask for the day-month-year that you expect to be the time of your death. to estimate the time remaining on this planet.",
+  "disclaimer": "This program is not a forecast program. So the time in your life may run out before or after this.",
+  "next": "Next" 
     
   }
   

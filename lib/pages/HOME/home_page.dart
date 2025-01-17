@@ -14,13 +14,29 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   ui.Image? backgroundImage;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
     _loadImage();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    );
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _animationController.forward();
+      }
+    });
   }
 
   Future<void> _loadImage() async {
@@ -35,76 +51,91 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
     final localeNotifier = Provider.of<LocaleNotifier>(context);
 
-    // ตรวจสอบว่าเป็นโหมดมืดหรือไม่
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(400), // ขนาด AppBar
-        child: AppBar(
-          automaticallyImplyLeading: false,
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          flexibleSpace: Stack(
-            children: [
-              if (backgroundImage != null)
-                CustomPaint(
-                  size: const Size(double.infinity, 450),
-                  painter: WavePainter(backgroundImage!),
-                ),
-              Positioned(
-                top: 50, // จัดให้อยู่ด้านบน
-                left: 16, // ระยะห่างจากซ้าย
-                right: 16, // ระยะห่างจากขวา
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        preferredSize: const Size.fromHeight(400),
+        child: AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(0, -400 + (400 * _animation.value)),
+              child: AppBar(
+                automaticallyImplyLeading: false,
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                flexibleSpace: Stack(
                   children: [
-                    DropdownButton<Locale>(
-                      value: localeNotifier.locale,
-                      onChanged: (Locale? newLocale) {
-                        if (newLocale != null) {
-                          localeNotifier.updateLocale(newLocale);
-                        }
-                      },
-                      items: [
-                        DropdownMenuItem(
-                          value: const Locale('en'),
-                          child: Text(
-                            AppLocalizations.of(context)!
-                                .languageEnglish, // ใช้ข้อความ Localization
-                            style: const TextStyle(color: Colors.white),
+                    if (backgroundImage != null)
+                      AnimatedBuilder(
+                        animation: _animation,
+                        builder: (context, child) {
+                          return CustomPaint(
+                            size: Size(double.infinity, 450 * _animation.value),
+                            painter:
+                                WavePainter(backgroundImage!, _animation.value),
+                          );
+                        },
+                      ),
+                    Positioned(
+                      top: 50,
+                      left: 16,
+                      right: 16,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          DropdownButton<Locale>(
+                            value: localeNotifier.locale,
+                            onChanged: (Locale? newLocale) {
+                              if (newLocale != null) {
+                                localeNotifier.updateLocale(newLocale);
+                              }
+                            },
+                            items: [
+                              DropdownMenuItem(
+                                value: const Locale('en'),
+                                child: Text(
+                                  AppLocalizations.of(context)!.languageEnglish,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: const Locale('th'),
+                                child: Text(
+                                  AppLocalizations.of(context)!.languageThai,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                            dropdownColor: Colors.grey.shade800,
+                            underline: const SizedBox(),
                           ),
-                        ),
-                        DropdownMenuItem(
-                          value: const Locale('th'),
-                          child: Text(
-                            AppLocalizations.of(context)!
-                                .languageThai, // ใช้ข้อความ Localization
-                            style: const TextStyle(color: Colors.white),
+                          CustomThemeSwitch(
+                            isDarkMode:
+                                themeNotifier.themeMode == ThemeMode.dark,
+                            onChanged: (bool isDarkMode) {
+                              final newMode =
+                                  isDarkMode ? ThemeMode.dark : ThemeMode.light;
+                              themeNotifier.updateThemeMode(newMode);
+                            },
                           ),
-                        ),
-                      ],
-
-                      dropdownColor: Colors.grey.shade800, // พื้นหลังเมนู
-                      underline: const SizedBox(), // ลบเส้นขีดด้านล่าง
-                    ),
-                    CustomThemeSwitch(
-                      isDarkMode: themeNotifier.themeMode == ThemeMode.dark,
-                      onChanged: (bool isDarkMode) {
-                        final newMode =
-                            isDarkMode ? ThemeMode.dark : ThemeMode.light;
-                        themeNotifier.updateThemeMode(newMode);
-                      },
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
       body: Padding(
@@ -164,7 +195,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   onPressed: () {
-                    context.go('/about'); // การทำงานเมื่อกดปุ่ม
+                    context.go('/select_Date'); // การทำงานเมื่อกดปุ่ม
                   },
                   child: Text(
                     AppLocalizations.of(context)!.startButton,
@@ -312,29 +343,28 @@ class CustomThemeSwitch extends StatelessWidget {
 
 class WavePainter extends CustomPainter {
   final ui.Image backgroundImage;
+  final double animationValue;
 
-  WavePainter(this.backgroundImage);
+  WavePainter(this.backgroundImage, this.animationValue);
 
   @override
   void paint(Canvas canvas, Size size) {
-    // วาดเงา
     final shadowPaint = Paint()
-      // ignore: deprecated_member_use
-      ..color = Colors.black.withOpacity(1) // สีเงาพร้อมความโปร่งใส
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10); // ความฟุ้ง
+      ..color =
+          const ui.Color.fromARGB(255, 0, 0, 0).withOpacity(animationValue)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
 
     final Path shadowPath = Path();
     shadowPath.lineTo(0, size.height * 0.7);
-    shadowPath.quadraticBezierTo(
-        size.width * 0.25, size.height, size.width * 0.5, size.height * 0.9);
+    shadowPath.quadraticBezierTo(size.width * 0.25,
+        size.height * animationValue, size.width * 0.5, size.height * 0.9);
     shadowPath.quadraticBezierTo(
         size.width * 0.75, size.height * 0.8, size.width, size.height);
     shadowPath.lineTo(size.width, 0);
     shadowPath.close();
 
-    canvas.drawPath(shadowPath, shadowPaint); // วาดเงาก่อน
+    canvas.drawPath(shadowPath, shadowPaint);
 
-    // วาดพื้นหลังด้วยรูปภาพ
     final imagePaint = Paint()
       ..shader = ImageShader(
         backgroundImage,
@@ -351,45 +381,18 @@ class WavePainter extends CustomPainter {
 
     final Path path = Path();
     path.lineTo(0, size.height * 0.7);
-    path.quadraticBezierTo(
-        size.width * 0.25, size.height, size.width * 0.5, size.height * 0.9);
+    path.quadraticBezierTo(size.width * 0.25, size.height * animationValue,
+        size.width * 0.5, size.height * 0.9);
     path.quadraticBezierTo(
         size.width * 0.75, size.height * 0.8, size.width, size.height);
     path.lineTo(size.width, 0);
     path.close();
 
-    canvas.drawPath(path, imagePaint); // วาดรูปร่างคลื่นด้วยภาพ
+    canvas.drawPath(path, imagePaint);
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
-}
-
-class CustomButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-  final Color backgroundColor;
-  final Color textColor;
-
-  const CustomButton({
-    Key? key,
-    required this.label,
-    required this.onPressed,
-    required this.backgroundColor,
-    required this.textColor,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        foregroundColor: textColor,
-        backgroundColor: backgroundColor, // สีข้อความ
-      ),
-      onPressed: onPressed, // ฟังก์ชันเมื่อกดปุ่ม
-      child: Text(label), // ข้อความในปุ่ม
-    );
+    return true;
   }
 }
