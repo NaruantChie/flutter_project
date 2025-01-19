@@ -36,7 +36,7 @@ class _DeathDayPageState extends State<DeathDayPage> {
       dayWidgets.add(GestureDetector(
         onTap: () {
           // เพิ่มฟังก์ชันเมื่อคลิกวันที่
-          print('เลือกวันที่: $day');
+          print('เลือกวันที่22: $day');
         },
         child: Container(
           decoration: BoxDecoration(
@@ -67,7 +67,7 @@ class _DeathDayPageState extends State<DeathDayPage> {
               Text(
                 'วันตาย',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   decoration: TextDecoration.none, // ปิดการแสดงเส้นใต้
                 ),
