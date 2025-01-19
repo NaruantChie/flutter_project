@@ -42,7 +42,7 @@ class _DeathDayPageState extends State<DeathDayPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.orange),
+            border: Border.all(color: const Color.fromARGB(255, 13, 10, 5)),
           ),
           alignment: Alignment.center,
           child: Text(
