@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:life_countdown/pages/Description/description.dart';
-import 'package:life_countdown/pages/Select_Date/select_Date.dart';
 import 'package:life_countdown/pages/HOME/home_page.dart';
 import 'package:life_countdown/pages/PROVIDERS/locale_provider.dart';
 import 'package:life_countdown/pages/PROVIDERS/theme_provider.dart';
+import 'package:life_countdown/pages/Select_Date/select_Date.dart';
+import 'package:life_countdown/pages/Selection/deathDayPage.dart';
+import 'package:life_countdown/pages/Selection/deathMonthPage.dart';
+import 'package:life_countdown/pages/Selection/deathTimePage.dart';
 import 'package:life_countdown/pages/Selection/deathYearPage.dart';
 import 'package:life_countdown/pages/Selection/selection.dart';
 import 'package:provider/provider.dart';
@@ -75,6 +78,18 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/death_year',
       builder: (context, state) => const DeathYearPage(),
+    ),
+    GoRoute(
+      path: '/death_month',
+      builder: (context, state) => DeathMonthPage(),
+    ),
+    GoRoute(
+      path: '/death_day',
+      builder: (context, state) => DeathDayPage(),
+    ),
+    GoRoute(
+      path: '/death_time',
+      builder: (context, state) => DeathTimePage(),
     ),
   ],
 );

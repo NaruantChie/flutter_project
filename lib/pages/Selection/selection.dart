@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:life_countdown/pages/Selection/deathDayPage.dart';
+import 'package:life_countdown/pages/Selection/deathMonthPage.dart';
+import 'package:life_countdown/pages/Selection/deathTimePage.dart';
+import 'package:life_countdown/pages/Selection/deathYearPage.dart';
 
 class SelectionPage extends StatefulWidget {
   const SelectionPage({super.key});
@@ -18,6 +22,7 @@ class _SelectionPageState extends State<SelectionPage> {
       'maxChildSize': 0.9,
       'initialChildSize': 0.9,
       'minChildSize': 0.3,
+      'isDeathTimePage': true,
     },
     {
       'title': 'แผ่นที่ 2',
@@ -25,6 +30,7 @@ class _SelectionPageState extends State<SelectionPage> {
       'maxChildSize': 0.8,
       'initialChildSize': 0.8,
       'minChildSize': 0.3,
+      'isDeathDayPage': true,
     },
     {
       'title': 'แผ่นที่ 3',
@@ -32,6 +38,7 @@ class _SelectionPageState extends State<SelectionPage> {
       'maxChildSize': 0.7,
       'initialChildSize': 0.7,
       'minChildSize': 0.3,
+      'isDeathMonthPage': true,
     },
     {
       'title': 'แผ่นที่ 4',
@@ -39,6 +46,7 @@ class _SelectionPageState extends State<SelectionPage> {
       'maxChildSize': 0.6,
       'initialChildSize': 0.6,
       'minChildSize': 0.3,
+      'isDeathYearPage': true,
     },
   ];
 
@@ -78,6 +86,15 @@ class _SelectionPageState extends State<SelectionPage> {
               maxChildSize: sheets[topSheetIndex]['maxChildSize'],
               builder:
                   (BuildContext context, ScrollController scrollController) {
+                final isDeathYearPage =
+                    sheets[topSheetIndex]['isDeathYearPage'] ?? false;
+                final isDeathMonthPage =
+                    sheets[topSheetIndex]['isDeathMonthPage'] ?? false;
+                final isDeathDayPage =
+                    sheets[topSheetIndex]['isDeathDayPage'] ?? false;
+                final isDeathTimePage =
+                    sheets[topSheetIndex]['isDeathTimePage'] ?? false;
+
                 return Container(
                   decoration: BoxDecoration(
                     color: sheets[topSheetIndex]['color'],
@@ -86,15 +103,23 @@ class _SelectionPageState extends State<SelectionPage> {
                       topRight: Radius.circular(50),
                     ),
                   ),
-                  child: Center(
-                    child: Text(
-                      sheets[topSheetIndex]['title'],
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                  child: isDeathYearPage
+                      ? const DeathYearPage()
+                      : isDeathMonthPage
+                          ? DeathMonthPage() // เพิ่มการเรียก DeathMonthPage
+                          : isDeathDayPage
+                              ? DeathDayPage()
+                              : isDeathTimePage
+                                  ? DeathTimePage()
+                                  : Center(
+                                      child: Text(
+                                        sheets[topSheetIndex]['title'],
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                 );
               },
             ),
