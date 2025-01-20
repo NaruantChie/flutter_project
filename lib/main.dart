@@ -4,8 +4,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:life_countdown/pages/Description/description.dart';
 import 'package:life_countdown/pages/HOME/home_page.dart';
+import 'package:life_countdown/pages/LifeCountdown/LifeCountdownPage%20.dart';
 import 'package:life_countdown/pages/PROVIDERS/locale_provider.dart';
 import 'package:life_countdown/pages/PROVIDERS/theme_provider.dart';
+import 'package:life_countdown/pages/Result/resultPage.dart';
 import 'package:life_countdown/pages/Select_Date/select_Date.dart';
 import 'package:life_countdown/pages/Selection/deathDayPage.dart';
 import 'package:life_countdown/pages/Selection/deathMonthPage.dart';
@@ -73,23 +75,100 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/selection',
-      builder: (context, state) => SelectionPage(),
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>?;
+
+        final selectedYear = args?['year'];
+        final selectedMonth = args?['month'];
+        final selectedDay = args?['day'];
+
+        return SelectionPage(
+          year: selectedYear,
+          month: selectedMonth,
+          day: selectedDay,
+        );
+      },
     ),
     GoRoute(
       path: '/death_year',
-      builder: (context, state) => const DeathYearPage(),
+      builder: (context, state) {
+        return DeathYearPage(
+          onSelected: (selectedYear) {
+            print('Selected year: $selectedYear');
+          },
+        );
+      },
     ),
     GoRoute(
       path: '/death_month',
-      builder: (context, state) => DeathMonthPage(),
+      builder: (context, state) {
+        return DeathMonthPage(
+          onSelected: (selectedMonth, selectedMonthName) {
+            context.go(
+              '/death_day',
+              extra: {
+                'selectedMonth': selectedMonth,
+                'selectedMonthName': selectedMonthName,
+              },
+            );
+          },
+        );
+      },
     ),
     GoRoute(
       path: '/death_day',
-      builder: (context, state) => DeathDayPage(),
+      builder: (context, state) {
+        final extra =
+            state.extra as Map<String, dynamic>?; // รับข้อมูลจาก state.extra
+        final selectedMonth =
+            extra?['selectedMonth'] ?? 1; // เดือนในรูปแบบตัวเลข
+        final selectedMonthName =
+            extra?['selectedMonthName'] ?? 'มกราคม'; // ชื่อเดือน
+
+        return DeathDayPage(
+          month: selectedMonth,
+          monthName: selectedMonthName,
+          year: 2025, // สามารถกำหนดปีที่ต้องการได้
+          onSelected: (selectedDay) {
+            // ตัวอย่าง: แสดงผลวันที่เลือกใน console
+            print('Selected day: $selectedDay');
+          },
+        );
+      },
     ),
     GoRoute(
       path: '/death_time',
-      builder: (context, state) => DeathTimePage(),
+      builder: (context, state) => DeathTimePage(
+        onSelected: (value) {
+          // ดำเนินการเมื่อเลือกเวลา
+          print('Selected time: $value');
+        },
+      ),
+    ),
+    GoRoute(
+      path: '/resultPage',
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>?;
+
+        final fromSelectDate = args?['fromSelectDate'] as Map<String, dynamic>?;
+        final fromSelectionPage =
+            args?['fromSelectionPage'] as Map<String, dynamic>?;
+
+        return ResultPage(
+          fromSelectDate: fromSelectDate,
+          fromSelectionPage: fromSelectionPage,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/lifeCount_downPage',
+      builder: (context, state) {
+        final data = state.extra as Map<String, DateTime>;
+        return LifeCountdownPage(
+          deathDate: data['deathDate']!,
+          birthDate: data['birthDate']!,
+        );
+      },
     ),
   ],
 );

@@ -1,29 +1,30 @@
 import 'package:flutter/material.dart';
-
 class DeathDayPage extends StatefulWidget {
-  const DeathDayPage({super.key});
+  final int month; // เดือนในรูปแบบตัวเลข (1-12)
+  final String monthName; // ชื่อเดือน
+  final int year; // ปี
+  final Function(String) onSelected; // Callback สำหรับส่งวันที่ที่เลือก
+
+  const DeathDayPage({
+    super.key,
+    required this.month,
+    required this.monthName,
+    required this.year,
+    required this.onSelected,
+  });
 
   @override
   State<DeathDayPage> createState() => _DeathDayPageState();
 }
 
 class _DeathDayPageState extends State<DeathDayPage> {
-  int selectedMonth = DateTime.now().month;
+  int? selectedDay;
 
   @override
   Widget build(BuildContext context) {
-    final daysInMonth = DateTime(2025, selectedMonth + 1, 0).day;
-    final firstDayOfWeek = DateTime(2025, selectedMonth, 1).weekday;
+    final daysInMonth = DateTime(widget.year, widget.month + 1, 0).day; // จำนวนวันในเดือน
+    final firstDayOfWeek = DateTime(widget.year, widget.month, 1).weekday;
 
-    final List<String> daysOfWeek = [
-      'อา.',
-      'จ.',
-      'อ.',
-      'พ.',
-      'พฤ.',
-      'ศ.',
-      'ส.'
-    ];
     final List<Widget> dayWidgets = [];
 
     // เติมช่องว่างสำหรับวันแรกของเดือน
@@ -33,23 +34,28 @@ class _DeathDayPageState extends State<DeathDayPage> {
 
     // สร้างปุ่มสำหรับวันที่
     for (int day = 1; day <= daysInMonth; day++) {
+      final isSelected = selectedDay == day;
       dayWidgets.add(GestureDetector(
         onTap: () {
-          // เพิ่มฟังก์ชันเมื่อคลิกวันที่
-          print('เลือกวันที่22: $day');
+          setState(() {
+            selectedDay = day;
+          });
+          widget.onSelected('$day-${widget.month}-${widget.year}');
         },
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isSelected ? Colors.orange[100] : Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color.fromARGB(255, 13, 10, 5)),
+            border: Border.all(
+                color: isSelected ? Colors.orange : Colors.grey, width: 2),
           ),
           alignment: Alignment.center,
           child: Text(
             '$day',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: Colors.black,
+              color: isSelected ? Colors.orange : Colors.black,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ),
@@ -59,105 +65,17 @@ class _DeathDayPageState extends State<DeathDayPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                'วันตาย',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.none, // ปิดการแสดงเส้นใต้
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'คุณคิดว่าคุณจะตายวันใด?',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.orange,
-                  decoration: TextDecoration.none, // ปิดการแสดงเส้นใต้
-                ),
-              ),
-            ],
-          ),
+        Text(
+          'เลือกวันที่ในเดือน ${widget.monthName} ปี ${widget.year}',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: daysOfWeek
-                .map((day) => Expanded(
-                      child: Center(
-                        child: Text(
-                          day,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange,
-                            fontSize: 24,
-                            decoration:
-                                TextDecoration.none, // ปิดการแสดงเส้นใต้
-// ลดขนาดตัวอักษรจากค่าเริ่มต้น
-                          ),
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
-        ),
-        const SizedBox(height: 8),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: GridView.count(
-              crossAxisCount: 7, // 7 วันใน 1 สัปดาห์
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              children: dayWidgets,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    selectedMonth =
-                        (selectedMonth - 1) < 1 ? 12 : selectedMonth - 1;
-                  });
-                },
-                child: const Text("เดือนก่อนหน้า"),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    selectedMonth =
-                        (selectedMonth + 1) > 12 ? 1 : selectedMonth + 1;
-                  });
-                },
-                child: const Text("เดือนถัดไป"),
-              ),
-            ],
+          child: GridView.count(
+            crossAxisCount: 7,
+            children: dayWidgets,
           ),
         ),
       ],
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: Scaffold(
-      body: DeathDayPage(), // แทรกใน Scaffold หากต้องการใช้ใน main
-    ),
-    theme: ThemeData(
-      primarySwatch: Colors.orange,
-    ),
-  ));
 }

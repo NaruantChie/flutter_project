@@ -6,15 +6,35 @@ import 'package:life_countdown/pages/Selection/deathTimePage.dart';
 import 'package:life_countdown/pages/Selection/deathYearPage.dart';
 
 class SelectionPage extends StatefulWidget {
-  const SelectionPage({super.key});
+  final String? year;
+  final String? month;
+  final String? day;
 
+  const SelectionPage({
+    Key? key,
+    this.year,
+    this.month,
+    this.day,
+  }) : super(key: key);
   @override
   State<SelectionPage> createState() => _SelectionPageState();
 }
 
 class _SelectionPageState extends State<SelectionPage> {
   int topSheetIndex = 3; // กำหนดแผ่นที่ 4 อยู่บนสุดเริ่มต้น
-
+  String selectedYear = "";
+  String selectedMonth = "";
+  String selectedDay = "";
+  String selectedTime = "";
+  int? selectedMonthNumber; // เก็บเลขเดือนที่เลือก (1-12)
+  @override
+  void initState() {
+    super.initState();
+    // กำหนดค่าจาก SelectDatePage เป็นค่าเริ่มต้น
+    selectedYear = widget.year ?? "";
+    selectedMonth = widget.month ?? "";
+    selectedDay = widget.day ?? "";
+  }
   final List<Map<String, dynamic>> sheets = [
     {
       'title': 'แผ่นที่ 1',
@@ -104,13 +124,54 @@ class _SelectionPageState extends State<SelectionPage> {
                     ),
                   ),
                   child: isDeathYearPage
-                      ? const DeathYearPage()
+                      ? DeathYearPage(
+                          onSelected: (value) {
+                            setState(() {
+                              selectedYear = value.toString();
+                            });
+                          },
+                        )
                       : isDeathMonthPage
-                          ? DeathMonthPage() // เพิ่มการเรียก DeathMonthPage
+                          ? DeathMonthPage(
+                              onSelected: (monthNumber, monthName) {
+                                setState(() {
+                                  selectedMonthNumber =
+                                      monthNumber; // บันทึกเลขเดือน
+                                  selectedMonth = monthName; // บันทึกชื่อเดือน
+                                });
+                              },
+                            )
                           : isDeathDayPage
-                              ? DeathDayPage()
+                              ? (selectedMonthNumber != null
+                                  ? DeathDayPage(
+                                      month: selectedMonthNumber!,
+                                      monthName: selectedMonth!,
+                                      year: selectedYear.isEmpty
+                                          ? 2025
+                                          : int.parse(selectedYear),
+                                      onSelected: (value) {
+                                        setState(() {
+                                          selectedDay =
+                                              value; // บันทึกวันที่ที่เลือก
+                                        });
+                                      },
+                                    )
+                                  : const Center(
+                                      child: Text(
+                                        'กรุณาเลือกเดือนก่อน',
+                                        style: TextStyle(
+                                            fontSize: 18, color: Colors.red),
+                                      ),
+                                    ))
                               : isDeathTimePage
-                                  ? DeathTimePage()
+                                  ? DeathTimePage(
+                                      onSelected: (value) {
+                                        setState(() {
+                                          selectedTime =
+                                              value; // บันทึกเวลาที่เลือก
+                                        });
+                                      },
+                                    )
                                   : Center(
                                       child: Text(
                                         sheets[topSheetIndex]['title'],
@@ -125,17 +186,79 @@ class _SelectionPageState extends State<SelectionPage> {
             ),
           ),
           // ปุ่มสลับแผ่นที่ตำแหน่งคงที่
-          Positioned(
-            bottom: 50,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: ElevatedButton(
-                onPressed: bringNextSheetToFront,
-                child: const Text("สลับแผ่น"),
-              ),
-            ),
-          ),
+   Positioned(
+  bottom: 50,
+  left: 0,
+  right: 0,
+  child: Center(
+   child: ElevatedButton(
+  onPressed: () {
+    if (topSheetIndex == 3 && selectedYear.isNotEmpty) {
+      setState(() {
+        topSheetIndex = 2; // ไปยังการเลือกเดือน
+      });
+    } else if (topSheetIndex == 2 && selectedMonth.isNotEmpty) {
+      setState(() {
+        topSheetIndex = 1; // ไปยังการเลือกวัน
+      });
+    } else if (topSheetIndex == 1 && selectedDay.isNotEmpty) {
+      setState(() {
+        topSheetIndex = 0; // ไปยังการเลือกเวลา
+      });
+    } else if (topSheetIndex == 0 && selectedTime.isNotEmpty) {
+      // ส่งข้อมูลทั้งหมดไปยังหน้าผลลัพธ์ รวมค่าจาก SelectDatePage
+      context.go(
+        '/resultPage',
+        extra: {
+          'fromSelectDate': {
+            'year': widget.year, // ค่าจาก SelectDatePage
+            'month': widget.month,
+            'day': widget.day,
+          },
+          'fromSelectionPage': {
+            'selectedYear': selectedYear, // ค่าที่เลือกใน SelectionPage
+            'selectedMonth': selectedMonth,
+            'selectedDay': selectedDay,
+            'selectedTime': selectedTime,
+          },
+          'summary':
+              'วันที่เลือก: $selectedDay $selectedMonth พ.ศ. $selectedYear เวลา: $selectedTime',
+        },
+      );
+    } else {
+      // แสดงข้อความเตือนหากยังเลือกไม่ครบ
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('กรุณาเลือกรายการให้ครบก่อน'),
+        ),
+      );
+    }
+  },
+  style: ElevatedButton.styleFrom(
+    backgroundColor: (topSheetIndex == 3 && selectedYear.isNotEmpty) ||
+            (topSheetIndex == 2 && selectedMonth.isNotEmpty) ||
+            (topSheetIndex == 1 && selectedDay.isNotEmpty) ||
+            (topSheetIndex == 0 && selectedTime.isNotEmpty)
+        ? Colors.blue // ใช้สีปกติหากข้อมูลครบ
+        : Colors.grey, // ใช้สีเทาหากข้อมูลไม่ครบ
+  ),
+  child: Text(
+    topSheetIndex == 3 && selectedYear.isNotEmpty
+        ? "ตกลง (ไปยังเดือน)"
+        : topSheetIndex == 2 && selectedMonth.isNotEmpty
+            ? "ตกลง (ไปยังวัน)"
+            : topSheetIndex == 1 && selectedDay.isNotEmpty
+                ? "ตกลง (ไปยังเวลา)"
+                : topSheetIndex == 0 && selectedTime.isNotEmpty
+                    ? "ยืนยันข้อมูล"
+                    : "กรุณาเลือกรายการให้ครบ",
+    style: const TextStyle(fontSize: 16, color: Colors.white),
+  ),
+),
+
+  ),
+),
+
         ],
       ),
     );

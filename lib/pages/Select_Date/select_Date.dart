@@ -302,13 +302,26 @@ class _SelectDatePageState extends State<SelectDatePage> {
                         selectedMonth != null &&
                         selectedDay != null)
                     ? () {
+                        // พิมพ์ค่าที่จะถูกส่งไปยังหน้า SelectionPage
+                        print({
+                          'year': selectedYear,
+                          'month': selectedMonth,
+                          'day': selectedDay,
+                        });
+
+                        // เรียก navigation ไปยัง SelectionPage
                         GoRouter.of(context).go(
-                          '/description', // เส้นทางของหน้าที่ต้องการไป
+                          '/selection',
+                          extra: {
+                            'year': selectedYear,
+                            'month': selectedMonth,
+                            'day': selectedDay,
+                          },
                         );
                       }
                     : null,
                 child: Text(
-                  localizations.nextButton,
+                  AppLocalizations.of(context)!.nextButton,
                   style: TextStyle(
                     fontSize: 18,
                     color: (selectedYear != null &&
