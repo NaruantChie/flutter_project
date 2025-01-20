@@ -10,16 +10,19 @@ class DeathTimePage extends StatefulWidget {
 }
 
 class _DeathTimePageState extends State<DeathTimePage> {
-  final List<String> times = [
-    'เที่ยงคืน',
-    'ตี 3',
-    '6 โมงเช้า',
-    '9 โมงเช้า',
-    'เที่ยงวัน',
-    'บ่าย 3',
-    '6 โมงเย็น',
-    '3 ทุ่ม',
-    'กำหนดเวลาเอง',
+  final List<Map<String, String>> times = [
+    {'key': '0', 'value': 'เที่ยงคืน'},
+    {'key': '3', 'value': 'ตี 3'},
+    {'key': '6', 'value': '6 โมงเช้า'},
+    {'key': '9', 'value': '9 โมงเช้า'},
+    {'key': '12', 'value': 'เที่ยงวัน'},
+    {'key': '15', 'value': 'บ่าย 3'},
+    {'key': '18', 'value': '6 โมงเย็น'},
+    {'key': '21', 'value': '3 ทุ่ม'},
+    {
+      'key': '-1',
+      'value': 'กำหนดเวลาเอง'
+    }, // ใช้ค่าลบหรือค่าพิเศษที่ไม่ได้อยู่ในช่วงเวลาเพื่อบอกว่าเป็นเวลาที่กำหนดเอง
   ];
 
   String? selectedTime; // เก็บเวลาที่เลือก
@@ -43,7 +46,6 @@ class _DeathTimePageState extends State<DeathTimePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // TextField สำหรับกรอกชั่วโมง
                   SizedBox(
                     width: 60,
                     child: TextField(
@@ -68,7 +70,6 @@ class _DeathTimePageState extends State<DeathTimePage> {
                       ),
                     ),
                   ),
-                  // TextField สำหรับกรอกนาที
                   SizedBox(
                     width: 60,
                     child: TextField(
@@ -95,7 +96,7 @@ class _DeathTimePageState extends State<DeathTimePage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // ปิด Dialog โดยไม่บันทึก
+                Navigator.pop(context);
               },
               child: const Text('ยกเลิก'),
             ),
@@ -107,12 +108,11 @@ class _DeathTimePageState extends State<DeathTimePage> {
                 if (_validateTime(hour, minute)) {
                   final customTime = '$hour:$minute';
                   setState(() {
-                    selectedTime = customTime; // บันทึกเวลาที่กำหนดเอง
+                    selectedTime = customTime;
                   });
-                  widget.onSelected(customTime); // ส่งค่ากลับ
-                  Navigator.pop(context); // ปิด Dialog
+                  widget.onSelected(customTime);
+                  Navigator.pop(context);
                 } else {
-                  // แสดงข้อความเตือนเมื่อรูปแบบเวลาไม่ถูกต้อง
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('รูปแบบเวลาไม่ถูกต้อง'),
@@ -129,7 +129,6 @@ class _DeathTimePageState extends State<DeathTimePage> {
     );
   }
 
-  // ฟังก์ชันตรวจสอบรูปแบบเวลา (ชั่วโมง และ นาที)
   bool _validateTime(String hour, String minute) {
     if (hour.length != 2 || minute.length != 2) return false;
 
@@ -137,10 +136,8 @@ class _DeathTimePageState extends State<DeathTimePage> {
     final minuteValue = int.tryParse(minute);
 
     if (hourValue == null || minuteValue == null) return false;
-    if (hourValue < 0 || hourValue > 23)
-      return false; // ชั่วโมงต้องอยู่ในช่วง 0-23
-    if (minuteValue < 0 || minuteValue > 59)
-      return false; // นาทีต้องอยู่ในช่วง 0-59
+    if (hourValue < 0 || hourValue > 23) return false;
+    if (minuteValue < 0 || minuteValue > 59) return false;
 
     return true;
   }
@@ -170,7 +167,7 @@ class _DeathTimePageState extends State<DeathTimePage> {
                   color: Colors.orange,
                 ),
               ),
-              if (selectedTime != null) // แสดงเวลาที่เลือก
+              if (selectedTime != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Text(
@@ -198,16 +195,21 @@ class _DeathTimePageState extends State<DeathTimePage> {
               ),
               itemCount: times.length,
               itemBuilder: (context, index) {
-                final isSelected = times[index] == selectedTime;
+                final timeKey = times[index]['key'];
+                final timeValue = times[index]['value'];
+                final isSelected = timeValue == selectedTime;
                 return GestureDetector(
                   onTap: () {
-                    if (times[index] == 'กำหนดเวลาเอง') {
-                      _showCustomTimeDialog(); // แสดง Dialog สำหรับกำหนดเวลาเอง
+                    if (timeValue == 'กำหนดเวลาเอง') {
+                      _showCustomTimeDialog();
                     } else {
                       setState(() {
-                        selectedTime = times[index]; // บันทึกเวลาที่เลือก
+                        selectedTime = timeValue;
                       });
-                      widget.onSelected(times[index]); // ส่งค่าที่เลือกกลับ
+                      // เพิ่ม print เพื่อตรวจสอบค่า
+                      print('Selected Key: $timeKey');
+                      print('Selected Value: $timeValue');
+                      widget.onSelected(timeValue!);
                     }
                   },
                   child: Container(
@@ -215,12 +217,13 @@ class _DeathTimePageState extends State<DeathTimePage> {
                       color: isSelected ? Colors.orange[100] : Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                          color: isSelected ? Colors.orange : Colors.grey,
-                          width: 2),
+                        color: isSelected ? Colors.orange : Colors.grey,
+                        width: 2,
+                      ),
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      times[index],
+                      timeValue!,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

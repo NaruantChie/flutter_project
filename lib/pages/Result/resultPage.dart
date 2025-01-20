@@ -10,41 +10,15 @@ class ResultPage extends StatelessWidget {
     this.fromSelectionPage,
   });
 
-  // Function to convert Buddhist year to Gregorian year
-  int? convertToBuddhistYear(int? year) {
-    return year != null ? year + 543 : null;
-  }
-
-  // Function to convert Gregorian year to Buddhist year
-  int? convertToGregorianYear(int? year) {
-    return year != null ? year - 543 : null;
-  }
-
   @override
   Widget build(BuildContext context) {
     int? remainingDays;
+    int? remainingHours;
+    int? remainingMinutes;
+    int? remainingSeconds;
 
-    // ตรวจสอบข้อมูลก่อนเริ่มคำนวณ
     if (fromSelectDate != null && fromSelectionPage != null) {
-      // รับค่าปี เดือน วัน ที่เลือกใน SelectionPage
-      final int selectedYear =
-          int.tryParse(fromSelectionPage?['selectedYear']?.toString() ?? '0') ??
-              0;
-      final int selectedMonth = int.tryParse(
-              fromSelectionPage?['selectedMonth']?.toString() ?? '1') ??
-          1;
-      final int selectedDay =
-          int.tryParse(fromSelectionPage?['selectedDay']?.toString() ?? '1') ??
-              1;
-
-      // แปลงปีพุทธศักราชเป็นคริสต์ศักราช
-      final deathDate = DateTime(
-        convertToGregorianYear(selectedYear) ?? 0,
-        selectedMonth,
-        selectedDay,
-      );
-
-      // รับค่าปี เดือน วัน วันเกิด
+      // ดึงข้อมูลจาก SelectDatePage
       final int birthYear =
           int.tryParse(fromSelectDate?['year']?.toString() ?? '0') ?? 0;
       final int birthMonth =
@@ -52,16 +26,37 @@ class ResultPage extends StatelessWidget {
       final int birthDay =
           int.tryParse(fromSelectDate?['day']?.toString() ?? '1') ?? 1;
 
-      final birthDate = DateTime(
-        convertToGregorianYear(birthYear) ?? 0,
-        birthMonth,
-        birthDay,
-      );
+      final birthDate = DateTime(birthYear, birthMonth, birthDay);
 
-      // ตรวจสอบว่าข้อมูลวันเกิดและวันที่เสียชีวิตถูกต้อง
-      if (!birthDate.isAfter(deathDate)) {
-        remainingDays = deathDate.difference(birthDate).inDays;
-      }
+      // ดึงข้อมูลจาก SelectionPage
+      final int additionalYears =
+          int.tryParse(fromSelectionPage?['selectedYear']?.toString() ?? '0') ??
+              0;
+      final int additionalMonths =
+          fromSelectionPage?['selectedMonthNumber'] ?? 0;
+      final int selectedDay =
+          int.tryParse(fromSelectionPage?['selectedDay']?.toString() ?? '1') ??
+              1;
+      final int additionalHours =
+          int.tryParse(fromSelectionPage?['selectedTime']?.toString() ?? '0') ??
+              0;
+
+      // ใช้ selectedDay อย่างเหมาะสม โดยบวกจากวันที่เริ่มต้นของเดือน
+      final finalDate = birthDate
+          .add(Duration(days: additionalYears - 365))
+          .add(Duration(days: additionalMonths - 30)) // คร่าวๆ ต่อเดือน
+          .add(Duration(hours: additionalHours))
+          .add(Duration(days: selectedDay - 1));
+
+      // เวลาปัจจุบัน
+      final now = DateTime.now();
+
+      // คำนวณระยะเวลาที่เหลือ
+      final remainingDuration = finalDate.difference(now);
+      remainingDays = remainingDuration.inDays;
+      remainingHours = remainingDuration.inHours % 24;
+      remainingMinutes = remainingDuration.inMinutes % 60;
+      remainingSeconds = remainingDuration.inSeconds % 60;
     }
 
     return Scaffold(
@@ -77,8 +72,7 @@ class ResultPage extends StatelessWidget {
               'ค่าจาก SelectDatePage:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            Text(
-                'ปี: ${convertToBuddhistYear(int.tryParse(fromSelectDate?['year']?.toString() ?? '0')) ?? 'ไม่ระบุ'}'),
+            Text('ปี: ${fromSelectDate?['year'] ?? 'ไม่ระบุ'}'),
             Text('เดือน: ${fromSelectDate?['month'] ?? 'ไม่ระบุ'}'),
             Text('วัน: ${fromSelectDate?['day'] ?? 'ไม่ระบุ'}'),
             const SizedBox(height: 16),
@@ -87,18 +81,24 @@ class ResultPage extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Text('ปี: ${fromSelectionPage?['selectedYear'] ?? 'ไม่ระบุ'}'),
-            Text('เดือน: ${fromSelectionPage?['selectedMonth'] ?? 'ไม่ระบุ'}'),
+            Text(
+                'เลขเดือน: ${fromSelectionPage?['selectedMonthNumber'] ?? 'ไม่ระบุ'}'),
             Text('วัน: ${fromSelectionPage?['selectedDay'] ?? 'ไม่ระบุ'}'),
             Text('เวลา: ${fromSelectionPage?['selectedTime'] ?? 'ไม่ระบุ'}'),
             const SizedBox(height: 32),
             if (remainingDays != null)
-              Text(
-                'เหลืออีก $remainingDays วัน ฉันจะตาย',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'เหลืออีก $remainingDays วัน, $remainingHours ชั่วโมง, $remainingMinutes นาที, $remainingSeconds วินาที ฉันจะตาย',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
               )
             else
               const Text(

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 class SelectDatePage extends StatefulWidget {
   const SelectDatePage({super.key});
@@ -17,8 +17,12 @@ class _SelectDatePageState extends State<SelectDatePage> {
   String? selectedDay;
   bool showCake = false;
 
-  final List<String> years =
-      List.generate(100, (index) => (DateTime.now().year - index).toString());
+  final List<String> years = List.generate(
+    100,
+    (index) =>
+        (DateTime.now().year - index + 543).toString(), // ใช้ปี พ.ศ. โดยตรง
+  );
+
   List<String> getLocalizedMonths(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
     return [
@@ -51,10 +55,7 @@ class _SelectDatePageState extends State<SelectDatePage> {
       List.generate(31, (index) => (index + 1).toString().padLeft(2, '0'));
   void updateDays() {
     if (selectedYear != null && selectedMonth != null) {
-      int year = int.parse(selectedYear!);
-      int month = getLocalizedMonths(context).indexOf(selectedMonth!) +
-          1; // แปลงชื่อเดือนเป็นตัวเลข
-      int daysInMonth = DateTime(year, month + 1, 0).day;
+      int daysInMonth = 31; // ค่าที่กำหนดไว้ล่วงหน้า
       setState(() {
         days = List.generate(
             daysInMonth, (index) => (index + 1).toString().padLeft(2, '0'));
@@ -77,15 +78,15 @@ class _SelectDatePageState extends State<SelectDatePage> {
             context.go('/');
           },
         ),
-        toolbarHeight: 80, // เพิ่มความสูงของ AppBar
+        toolbarHeight: 80,
         flexibleSpace: Stack(
           children: [
             Align(
-              alignment: Alignment.center, // จัดตำแหน่งให้อยู่กลางแนวนอน
+              alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 15), // ขยับข้อความขึ้น
+                  const SizedBox(height: 15),
                   Text(
                     localizations.selectDateHeader,
                     style: const TextStyle(
@@ -107,8 +108,7 @@ class _SelectDatePageState extends State<SelectDatePage> {
           ],
         ),
         bottom: PreferredSize(
-          preferredSize:
-              const Size.fromHeight(250), // กำหนดความสูงเพิ่มเติมของ AppBar
+          preferredSize: const Size.fromHeight(250),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Row(
@@ -274,7 +274,7 @@ class _SelectDatePageState extends State<SelectDatePage> {
               duration: const Duration(seconds: 1),
               curve: Curves.easeInOut,
               child: Icon(
-                FontAwesomeIcons.baby, // ไอคอนรูปเด็ก
+                FontAwesomeIcons.baby,
                 size: 420,
                 color: Theme.of(context).brightness == Brightness.dark
                     ? Colors.white

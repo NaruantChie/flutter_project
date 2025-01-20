@@ -99,22 +99,22 @@ final GoRouter _router = GoRouter(
         );
       },
     ),
-    GoRoute(
+  GoRoute(
       path: '/death_month',
       builder: (context, state) {
         return DeathMonthPage(
-          onSelected: (selectedMonth, selectedMonthName) {
+          onSelected: (selectedMonth) {
             context.go(
               '/death_day',
               extra: {
                 'selectedMonth': selectedMonth,
-                'selectedMonthName': selectedMonthName,
               },
             );
           },
         );
       },
     ),
+
     GoRoute(
       path: '/death_day',
       builder: (context, state) {

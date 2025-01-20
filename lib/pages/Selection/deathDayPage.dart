@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class DeathDayPage extends StatefulWidget {
   final int month; // เดือนในรูปแบบตัวเลข (1-12)
   final String monthName; // ชื่อเดือน
@@ -22,7 +23,8 @@ class _DeathDayPageState extends State<DeathDayPage> {
 
   @override
   Widget build(BuildContext context) {
-    final daysInMonth = DateTime(widget.year, widget.month + 1, 0).day; // จำนวนวันในเดือน
+    final daysInMonth =
+        DateTime(widget.year, widget.month + 1, 0).day; // จำนวนวันในเดือน
     final firstDayOfWeek = DateTime(widget.year, widget.month, 1).weekday;
 
     final List<Widget> dayWidgets = [];
@@ -40,7 +42,7 @@ class _DeathDayPageState extends State<DeathDayPage> {
           setState(() {
             selectedDay = day;
           });
-          widget.onSelected('$day-${widget.month}-${widget.year}');
+          widget.onSelected('$day'); // เปลี่ยนเป็นส่งเฉพาะวัน
         },
         child: Container(
           decoration: BoxDecoration(

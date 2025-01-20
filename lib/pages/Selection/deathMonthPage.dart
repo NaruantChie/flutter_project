@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DeathMonthPage extends StatefulWidget {
-  final Function(int, String) onSelected; // เพิ่ม callback ที่ส่งเดือนในรูปตัวเลขและชื่อ
+  final Function(int) onSelected;
 
   const DeathMonthPage({super.key, required this.onSelected});
 
@@ -10,22 +10,22 @@ class DeathMonthPage extends StatefulWidget {
 }
 
 class _DeathMonthPageState extends State<DeathMonthPage> {
-  final List<String> months = [
-    'มกราคม',
-    'กุมภาพันธ์',
-    'มีนาคม',
-    'เมษายน',
-    'พฤษภาคม',
-    'มิถุนายน',
-    'กรกฎาคม',
-    'สิงหาคม',
-    'กันยายน',
-    'ตุลาคม',
-    'พฤศจิกายน',
-    'ธันวาคม',
+  final List<Map<String, dynamic>> months = [
+    {'key': 1, 'value': 'มกราคม'},
+    {'key': 2, 'value': 'กุมภาพันธ์'},
+    {'key': 3, 'value': 'มีนาคม'},
+    {'key': 4, 'value': 'เมษายน'},
+    {'key': 5, 'value': 'พฤษภาคม'},
+    {'key': 6, 'value': 'มิถุนายน'},
+    {'key': 7, 'value': 'กรกฎาคม'},
+    {'key': 8, 'value': 'สิงหาคม'},
+    {'key': 9, 'value': 'กันยายน'},
+    {'key': 10, 'value': 'ตุลาคม'},
+    {'key': 11, 'value': 'พฤศจิกายน'},
+    {'key': 12, 'value': 'ธันวาคม'},
   ];
 
-  String? selectedMonth; // เก็บเดือนที่เลือก
+  int? selectedMonthKey;
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +43,11 @@ class _DeathMonthPageState extends State<DeathMonthPage> {
             ),
           ),
         ),
-        if (selectedMonth != null) // แสดงเดือนที่เลือก
+        if (selectedMonthKey != null)
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'คุณเลือก: $selectedMonth',
+              'คุณเลือกเดือนที่: $selectedMonthKey',
               style: const TextStyle(
                 fontSize: 16,
                 color: Colors.green,
@@ -64,14 +64,17 @@ class _DeathMonthPageState extends State<DeathMonthPage> {
             ),
             itemCount: months.length,
             itemBuilder: (context, index) {
-              final isSelected = months[index] == selectedMonth;
+              final month = months[index];
+              final isSelected = month['key'] == selectedMonthKey;
               return GestureDetector(
+                key: Key(month['key'].toString()),
                 onTap: () {
                   setState(() {
-                    selectedMonth = months[index];
+                    selectedMonthKey = month['key'];
                   });
-                  // ส่งข้อมูลเดือนที่เลือกกลับไป (index + 1 = เดือนในรูปแบบตัวเลข)
-                  widget.onSelected(index + 1, months[index]);
+                  // เพิ่ม print เพื่อแสดงค่า key ที่เลือก
+                  print('Selected key (month number): ${month['key']}');
+                  widget.onSelected(month['key']);
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -84,7 +87,7 @@ class _DeathMonthPageState extends State<DeathMonthPage> {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    months[index],
+                    month['value'],
                     style: TextStyle(
                       fontSize: 16,
                       color: isSelected ? Colors.orange : Colors.grey,
