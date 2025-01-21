@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:life_countdown/pages/Selection/deathDayPage.dart';
@@ -23,13 +25,17 @@ class SelectionPage extends StatefulWidget {
   State<SelectionPage> createState() => _SelectionPageState();
 }
 
-class _SelectionPageState extends State<SelectionPage> {
+class _SelectionPageState extends State<SelectionPage>
+    with SingleTickerProviderStateMixin {
   int topSheetIndex = 3; // กำหนดแผ่นที่ 4 อยู่บนสุดเริ่มต้น
   String selectedYear = "";
   String selectedMonth = "";
   String selectedDay = "";
   String selectedTime = "";
   int? selectedMonthNumber; // เก็บเลขเดือนที่เลือก (1-12)
+
+  late AnimationController _imageController;
+  late Animation<double> _imageAnimation;
 
   final List<Map<String, dynamic>> months = [
     {'key': 1, 'value': 'มกราคม'},
@@ -63,6 +69,23 @@ class _SelectionPageState extends State<SelectionPage> {
     selectedYear = widget.year ?? "";
     selectedMonth = widget.month ?? "";
     selectedDay = widget.day ?? "";
+
+    // AnimationController สำหรับ Progress Bar และรูปภาพ
+    _imageController = AnimationController(
+      vsync: this,
+      duration:
+          const Duration(milliseconds: 1200), // กำหนดความเร็วของการเคลื่อนที่
+    )..repeat(reverse: true); // เพิ่มการดิ้นของรูปภาพ
+
+    _imageAnimation = Tween<double>(begin: -10.0, end: 10.0).animate(
+      CurvedAnimation(parent: _imageController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _imageController.dispose(); // ปิด AnimationController เมื่อ State ถูกทำลาย
+    super.dispose();
   }
 
   void printSelectedTime(String key) {
@@ -80,9 +103,11 @@ class _SelectionPageState extends State<SelectionPage> {
     final List<Map<String, dynamic>> sheets = [
       {
         'title': 'แผ่นที่ 1',
-        'color': Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[800] // สีเข้มในโหมดมืด
-            : Colors.grey[200], // สีอ่อนในโหมดสว่าง
+        'color': Theme.of(context).brightness == Brightness.light
+            ? Colors.grey[900]
+            : const Color.fromARGB(255, 166, 166, 166),
+        'icon': Icons.timer,
+        'iconTop': 100.0, // ความสูงของไอคอนสำหรับแผ่นที่ 1
         'maxChildSize': 0.9,
         'initialChildSize': 0.9,
         'minChildSize': 0.3,
@@ -90,9 +115,11 @@ class _SelectionPageState extends State<SelectionPage> {
       },
       {
         'title': 'แผ่นที่ 2',
-        'color': Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[700]
-            : Colors.grey[300],
+        'color': Theme.of(context).brightness == Brightness.light
+            ? Colors.grey[900]
+            : const Color.fromARGB(255, 166, 166, 166),
+        'icon': Icons.calendar_today,
+        'iconTop': 20.0, // ความสูงของไอคอนสำหรับแผ่นที่ 2
         'maxChildSize': 0.8,
         'initialChildSize': 0.8,
         'minChildSize': 0.3,
@@ -100,9 +127,11 @@ class _SelectionPageState extends State<SelectionPage> {
       },
       {
         'title': 'แผ่นที่ 3',
-        'color': Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[600]
-            : Colors.grey[400],
+        'color': Theme.of(context).brightness == Brightness.light
+            ? Colors.grey[900]
+            : const Color.fromARGB(255, 166, 166, 166),
+        'icon': Icons.event_note,
+        'iconTop': 40.0, // ความสูงของไอคอนสำหรับแผ่นที่ 3
         'maxChildSize': 0.7,
         'initialChildSize': 0.7,
         'minChildSize': 0.3,
@@ -112,20 +141,22 @@ class _SelectionPageState extends State<SelectionPage> {
         'title': 'แผ่นที่ 4',
         'color': Theme.of(context).brightness == Brightness.light
             ? Colors.grey[900]
-            : Colors.grey[50],
+            : const Color.fromARGB(255, 166, 166, 166),
+        'icon': Icons.star,
+        'iconTop': 50.0, // ความสูงของไอคอนสำหรับแผ่นที่ 4
         'maxChildSize': 0.6,
         'initialChildSize': 0.6,
         'minChildSize': 0.3,
         'isDeathYearPage': true,
       },
     ];
+
     void bringNextSheetToFront() {
       setState(() {
         topSheetIndex = (topSheetIndex - 1 + sheets.length) % sheets.length;
       });
     }
 
-    // เพิ่มฟังก์ชันนำแผ่นก่อนหน้าไปด้านหน้า
     void bringPreviousSheetToFront() {
       setState(() {
         topSheetIndex = (topSheetIndex + 1) % sheets.length;
@@ -145,15 +176,11 @@ class _SelectionPageState extends State<SelectionPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[900] // พื้นหลังเข้มในโหมดมืด
-            : Colors.white, // พื้นหลังอ่อนในโหมดสว่าง
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
         title: Text(
           "กลับ",
           style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white // ตัวหนังสือสีขาวในโหมดมืด
-                : Colors.black, // ตัวหนังสือสีดำในโหมดสว่าง
+            color: isDarkMode ? Colors.white : Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -161,19 +188,77 @@ class _SelectionPageState extends State<SelectionPage> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white // ไอคอนสีขาวในโหมดมืด
-                : Colors.black, // ไอคอนสีดำในโหมดสว่าง
+            color: isDarkMode ? Colors.white : Colors.black,
           ),
           onPressed: () {
-            context.go('/description'); // กลับไปยังหน้า Description
+            context.go('/description');
           },
         ),
       ),
       body: Stack(
         children: [
-          Container(
-            color: isDarkMode ? Colors.black : Colors.white,
+          Positioned(
+            top: kToolbarHeight - 40,
+            left: MediaQuery.of(context).size.width * 0.1,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // พื้นหลังของ Progress Bar
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: 35,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                // Progress Bar ที่มีไล่สีแดง
+                AnimatedContainer(
+                  duration:
+                      const Duration(milliseconds: 500), // ระยะเวลาเคลื่อนที่
+                  curve: Curves.easeInOut,
+                  width: MediaQuery.of(context).size.width *
+                      0.8 *
+                      ((sheets.length - topSheetIndex) / sheets.length),
+                  height: 35,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color.fromARGB(255, 235, 86, 76).withOpacity(0.3),
+                        const Color.fromARGB(255, 212, 49, 37).withOpacity(0.6),
+                        const Color.fromARGB(255, 159, 20, 10).withOpacity(1.0),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      stops: [0.0, 0.5, 1.0],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                // รูปภาพที่เคลื่อนที่ไปพร้อมกับ Progress Bar
+                AnimatedBuilder(
+                  animation: _imageController,
+                  builder: (context, child) {
+                    // คำนวณตำแหน่ง Progress Bar
+                    final double progressWidth =
+                        MediaQuery.of(context).size.width *
+                            0.8 *
+                            ((sheets.length - topSheetIndex) / sheets.length);
+
+                    return Transform.translate(
+                      // ตำแหน่งรูปภาพสัมพันธ์กับ Progress Bar พร้อมกับ Animation
+                      offset: Offset(
+                          progressWidth - 25 + _imageAnimation.value, -15),
+                      child: child,
+                    );
+                  },
+                  child: Image.asset(
+                    'assets/images/scared_2367127.png',
+                    height: 50,
+                  ),
+                ),
+              ],
+            ),
           ),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 1000),
@@ -184,6 +269,9 @@ class _SelectionPageState extends State<SelectionPage> {
               maxChildSize: sheets[topSheetIndex]['maxChildSize'],
               builder:
                   (BuildContext context, ScrollController scrollController) {
+                final isDarkMode =
+                    Theme.of(context).brightness == Brightness.dark;
+
                 final isDeathYearPage =
                     sheets[topSheetIndex]['isDeathYearPage'] ?? false;
                 final isDeathMonthPage =
@@ -193,78 +281,134 @@ class _SelectionPageState extends State<SelectionPage> {
                 final isDeathTimePage =
                     sheets[topSheetIndex]['isDeathTimePage'] ?? false;
 
-                return Container(
-                  decoration: BoxDecoration(
-                    color: sheets[topSheetIndex]
-                        ['color'], // ดึงสีจาก sheets ที่ปรับแล้ว
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(50),
-                      topRight: Radius.circular(50),
-                    ),
+                return ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(50),
+                    topRight: Radius.circular(50),
                   ),
-                  child: isDeathYearPage
-                      ? DeathYearPage(
-                          onSelected: (value) {
-                            setState(() {
-                              selectedYear = value.toString();
-                            });
-                          },
-                          birthYear: int.tryParse(widget.year ?? '') ?? 0,
-                        )
-                      : isDeathMonthPage
-                          ? DeathMonthPage(
-                              onSelected: (monthNumber) {
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                        sigmaX: 10, sigmaY: 10), // ปรับระดับความเบลอ
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDarkMode
+                            ? Colors.white
+                                .withOpacity(0.7) // กระจกสีขาวใสใน Dark Mode
+                            : Colors.black
+                                .withOpacity(0.2), // กระจกสีดำใสใน Light Mode
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(50),
+                          topRight: Radius.circular(50),
+                        ),
+                        border: Border.all(
+                          color: isDarkMode
+                              ? Colors.white
+                                  .withOpacity(0.8) // เส้นขอบสีขาวใน Dark Mode
+                              : Colors.black
+                                  .withOpacity(0.5), // เส้นขอบสีดำใน Light Mode
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          // เงารอบด้าน
+                          BoxShadow(
+                            color: isDarkMode
+                                ? const Color.fromARGB(255, 212, 202, 202)
+                                    .withOpacity(0.8) // เงาสีดำใน Dark Mode
+                                : Colors.white
+                                    .withOpacity(0.5), // เงาสีขาวใน Light Mode
+                            blurRadius: 20,
+                            spreadRadius: 5, // ขยายพื้นที่เงา
+                            offset: const Offset(0, 10), // เงาอยู่รอบด้าน
+                          ),
+                          // เงาที่ด้านบน
+                          BoxShadow(
+                            color: isDarkMode
+                                ? Colors.black
+                                    .withOpacity(0.2) // เงาสีดำใน Dark Mode
+                                : const Color.fromARGB(255, 14, 14, 14)
+                                    .withOpacity(0.4), // เงาสีขาวใน Light Mode
+                            blurRadius: 10,
+                            offset: const Offset(0, -4), // เงาชี้ขึ้น (Y ติดลบ)
+                          ),
+                          // เงาที่ด้านล่าง
+                          BoxShadow(
+                            color: isDarkMode
+                                ? const Color.fromARGB(255, 155, 153, 153)
+                                    .withOpacity(0.2) // เงาสีดำใน Dark Mode
+                                : const Color.fromARGB(255, 20, 19, 19)
+                                    .withOpacity(0.8), // เงาสีขาวใน Light Mode
+                            blurRadius: 15,
+                            offset: const Offset(0, 6), // เงาชี้ลง (Y เป็นบวก)
+                          ),
+                        ],
+                      ),
+                      child: isDeathYearPage
+                          ? DeathYearPage(
+                              onSelected: (value) {
                                 setState(() {
-                                  selectedMonthNumber = monthNumber;
-                                  selectedMonth = months.firstWhere((m) =>
-                                          m['key'] == monthNumber)['value']
-                                      as String;
+                                  selectedYear = value.toString();
                                 });
                               },
+                              birthYear: int.tryParse(widget.year ?? '') ?? 0,
                             )
-                          : isDeathDayPage
-                              ? (selectedMonthNumber != null
-                                  ? DeathDayPage(
-                                      month: selectedMonthNumber!,
-                                      monthName: selectedMonth!,
-                                      year: selectedYear.isEmpty
-                                          ? 2025
-                                          : int.parse(selectedYear),
-                                      onSelected: (value) {
-                                        setState(() {
-                                          selectedDay = value;
-                                        });
-                                      },
-                                    )
-                                  : const Center(
-                                      child: Text(
-                                        'กรุณาเลือกเดือนก่อน',
-                                        style: TextStyle(
-                                            fontSize: 18, color: Colors.red),
-                                      ),
-                                    ))
-                              : isDeathTimePage
-                                  ? DeathTimePage(
-                                      onSelected: (value) {
-                                        setState(() {
-                                          selectedTime = value;
-                                          printSelectedTime(value);
-                                        });
-                                      },
-                                    )
-                                  : Center(
-                                      child: Text(
-                                        sheets[topSheetIndex]['title'],
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.white,
+                          : isDeathMonthPage
+                              ? DeathMonthPage(
+                                  onSelected: (monthNumber) {
+                                    setState(() {
+                                      selectedMonthNumber = monthNumber;
+                                      selectedMonth = months.firstWhere((m) =>
+                                              m['key'] == monthNumber)['value']
+                                          as String;
+                                    });
+                                  },
+                                )
+                              : isDeathDayPage
+                                  ? (selectedMonthNumber != null
+                                      ? DeathDayPage(
+                                          month: selectedMonthNumber!,
+                                          monthName: selectedMonth!,
+                                          year: selectedYear.isEmpty
+                                              ? 2025
+                                              : int.parse(selectedYear),
+                                          onSelected: (value) {
+                                            setState(() {
+                                              selectedDay = value;
+                                            });
+                                          },
+                                        )
+                                      : const Center(
+                                          child: Text(
+                                            'กรุณาเลือกเดือนก่อน',
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.red),
+                                          ),
+                                        ))
+                                  : isDeathTimePage
+                                      ? DeathTimePage(
+                                          onSelected: (value) {
+                                            setState(() {
+                                              selectedTime = value;
+                                              printSelectedTime(value);
+                                            });
+                                          },
+                                        )
+                                      : Center(
+                                          child: Text(
+                                            sheets[topSheetIndex]['title'],
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.white,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
+                    ),
+                  ),
                 );
               },
             ),
           ),
+
           Positioned(
             bottom: 100,
             left: 0,

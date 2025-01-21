@@ -88,7 +88,7 @@ class _DeathTimePageState extends State<DeathTimePage> {
               ),
               const SizedBox(height: 10),
               const Text(
-                'กรุณาป้อนเวลาในรูปแบบ HH:MM',
+                'กรุณาป้อนเวลาในรูปแบบ 24 ชั่วโมง (HH:MM)',
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ],
@@ -108,7 +108,7 @@ class _DeathTimePageState extends State<DeathTimePage> {
                 if (_validateTime(hour, minute)) {
                   final customTime = '$hour:$minute';
                   setState(() {
-                    selectedTime = customTime;
+                    selectedTime = customTime; // บันทึกเวลาในรูปแบบ 24 ชั่วโมง
                   });
                   widget.onSelected(customTime);
                   Navigator.pop(context);
@@ -130,16 +130,18 @@ class _DeathTimePageState extends State<DeathTimePage> {
   }
 
   bool _validateTime(String hour, String minute) {
-    if (hour.length != 2 || minute.length != 2) return false;
+    if (hour.length != 2 || minute.length != 2) return false; // ตรวจสอบความยาว
 
     final hourValue = int.tryParse(hour);
     final minuteValue = int.tryParse(minute);
 
-    if (hourValue == null || minuteValue == null) return false;
-    if (hourValue < 0 || hourValue > 23) return false;
-    if (minuteValue < 0 || minuteValue > 59) return false;
+    if (hourValue == null || minuteValue == null) return false; // ตรวจสอบตัวเลข
+    if (hourValue < 0 || hourValue > 23)
+      return false; // ชั่วโมงต้องอยู่ระหว่าง 0-23
+    if (minuteValue < 0 || minuteValue > 59)
+      return false; // นาทีต้องอยู่ระหว่าง 0-59
 
-    return true;
+    return true; // ถ้าผ่านเงื่อนไขทั้งหมด
   }
 
   @override

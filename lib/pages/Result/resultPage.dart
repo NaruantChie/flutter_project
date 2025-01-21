@@ -97,10 +97,26 @@ class _ResultPageState extends State<ResultPage> {
       final int deathDay = int.tryParse(
               widget.fromSelectionPage?['selectedDay']?.toString() ?? '1') ??
           1;
-      final int deathHour =
-          timeMapping[widget.fromSelectionPage?['selectedTime']] ?? 0;
 
-      deathDate = DateTime(deathYear, deathMonth, deathDay, deathHour);
+      // ตรวจสอบและแปลงเวลาที่เลือก
+      final String? selectedTime = widget.fromSelectionPage?['selectedTime'];
+      int deathHour = 0;
+      int deathMinute = 0;
+
+      if (selectedTime != null && timeMapping.containsKey(selectedTime)) {
+        // เวลาแบบปกติ เช่น "ตี 3"
+        deathHour = timeMapping[selectedTime]!;
+      } else if (selectedTime != null && selectedTime.contains(':')) {
+        // เวลาแบบกำหนดเอง เช่น "HH:MM"
+        final parts = selectedTime.split(':');
+        if (parts.length == 2) {
+          deathHour = int.tryParse(parts[0]) ?? 0;
+          deathMinute = int.tryParse(parts[1]) ?? 0;
+        }
+      }
+
+      deathDate =
+          DateTime(deathYear, deathMonth, deathDay, deathHour, deathMinute);
 
       final now = DateTime.now();
       final ageDuration = now.difference(birthDate!); // อายุที่ผ่านไปแล้ว
