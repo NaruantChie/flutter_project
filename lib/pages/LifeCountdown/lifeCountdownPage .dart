@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:go_router/go_router.dart';
 
 class LifeCountdownPage extends StatefulWidget {
   final DateTime deathDate;
@@ -45,6 +46,12 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
     super.dispose();
   }
 
+  String formatYearsAndDays(Duration duration) {
+    final years = duration.inDays ~/ 365;
+    final days = duration.inDays % 365;
+    return "$years ปี $days วัน";
+  }
+
   String formatDuration(Duration duration) {
     final days = duration.inDays;
     final hours = duration.inHours % 24;
@@ -74,65 +81,106 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pop();
+            context.go('/');
           },
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              "คุณเหลือเวลาอีก",
-              style: TextStyle(
-                fontSize: 24,
-                color: Colors.orange,
-                fontWeight: FontWeight.bold,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                "ข้อมูลทั้งหมด",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              formatDuration(_timeRemaining),
-              style: const TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+              const Divider(),
+              Text(
+                "วันเกิด: ${widget.birthDate.toLocal()}",
+                style: const TextStyle(fontSize: 18),
               ),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              height: 200,
-              width: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.orange, width: 8),
+              Text(
+                "วันตาย: ${widget.deathDate.toLocal()}",
+                style: const TextStyle(fontSize: 18),
               ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "ผ่านไปแล้ว",
-                        style: TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "${percentagePassed.toStringAsFixed(1)}%",
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange,
+              const SizedBox(height: 16),
+              const Text(
+                "เวลาที่ใช้ไป:",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                formatYearsAndDays(elapsedLifeSpan),
+                style: const TextStyle(fontSize: 16),
+              ),
+              Text(
+                "รวม: ${formatDuration(elapsedLifeSpan)}",
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "เวลาที่เหลือ:",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                formatYearsAndDays(_timeRemaining),
+                style: const TextStyle(fontSize: 16),
+              ),
+              Text(
+                "รวม: ${formatDuration(_timeRemaining)}",
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "เวลาทั้งหมดในชีวิต:",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                formatYearsAndDays(_totalLifeSpan),
+                style: const TextStyle(fontSize: 16),
+              ),
+              Text(
+                "รวม: ${formatDuration(_totalLifeSpan)}",
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                height: 200,
+                width: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.orange, width: 8),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "ผ่านไปแล้ว",
+                          style: TextStyle(fontSize: 16, color: Colors.black),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(height: 8),
+                        Text(
+                          "${percentagePassed.toStringAsFixed(1)}%",
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

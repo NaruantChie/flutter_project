@@ -71,35 +71,63 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/description',
-      builder: (context, state) => Description(),
-    ),
-    GoRoute(
-      path: '/selection',
       builder: (context, state) {
-        final args = state.extra as Map<String, dynamic>?;
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        final year = extra['year'];
+        final month = extra['month'];
+        final day = extra['day'];
 
-        final selectedYear = args?['year'];
-        final selectedMonth = args?['month'];
-        final selectedDay = args?['day'];
-
-        return SelectionPage(
-          year: selectedYear,
-          month: selectedMonth,
-          day: selectedDay,
+        return Description(
+          year: year,
+          month: month,
+          day: day,
         );
       },
     ),
-    GoRoute(
-      path: '/death_year',
-      builder: (context, state) {
-        return DeathYearPage(
-          onSelected: (selectedYear) {
-            print('Selected year: $selectedYear');
+GoRoute(
+  path: '/selection',
+  builder: (context, state) {
+    final args = state.extra as Map<String, dynamic>? ?? {};
+    final fromSelectDate =
+        args['fromSelectDate'] as Map<String, dynamic>? ?? {};
+
+    print('Received in SelectionPage: $fromSelectDate');
+
+    return SelectionPage(
+      year: fromSelectDate['year'] ?? 'N/A',
+      month: fromSelectDate['month'] ?? 'N/A',
+      day: fromSelectDate['day'] ?? 'N/A',
+      onNext: (selectionData) {
+        GoRouter.of(context).go(
+          '/resultPage',
+          extra: {
+            'fromSelectDate': fromSelectDate,
+            'fromSelectionPage': selectionData,
           },
         );
       },
-    ),
-  GoRoute(
+    );
+  },
+),
+
+GoRoute(
+  path: '/death_year',
+  builder: (context, state) {
+    final extra = state.extra as Map<String, dynamic>?; // รับค่า extra
+    final birthYear = int.parse(extra?['birthYear'] ?? '0'); // ดึง birthYear ที่ส่งมา
+
+    return DeathYearPage(
+      onSelected: (selectedYear) {
+        print('Selected year: $selectedYear');
+      },
+      birthYear: birthYear, // ส่ง birthYear ไป
+    );
+  },
+),
+
+
+
+    GoRoute(
       path: '/death_month',
       builder: (context, state) {
         return DeathMonthPage(
@@ -114,7 +142,6 @@ final GoRouter _router = GoRouter(
         );
       },
     ),
-
     GoRoute(
       path: '/death_day',
       builder: (context, state) {
@@ -148,11 +175,15 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/resultPage',
       builder: (context, state) {
-        final args = state.extra as Map<String, dynamic>?;
-
-        final fromSelectDate = args?['fromSelectDate'] as Map<String, dynamic>?;
+        final args = state.extra as Map<String, dynamic>? ?? {};
+        final fromSelectDate =
+            args['fromSelectDate'] as Map<String, dynamic>? ?? {};
         final fromSelectionPage =
-            args?['fromSelectionPage'] as Map<String, dynamic>?;
+            args['fromSelectionPage'] as Map<String, dynamic>? ?? {};
+
+        print('Navigated to ResultPage:');
+        print('fromSelectDate: $fromSelectDate');
+        print('fromSelectionPage: $fromSelectionPage');
 
         return ResultPage(
           fromSelectDate: fromSelectDate,

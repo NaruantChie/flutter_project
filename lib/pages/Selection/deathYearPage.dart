@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
 class DeathYearPage extends StatefulWidget {
-  final Function(int) onSelected; // เพิ่มพารามิเตอร์ onSelected
+  final Function(int) onSelected;
+  final int birthYear; // รับค่า birthYear
 
-  const DeathYearPage({super.key, required this.onSelected});
+  const DeathYearPage({
+    Key? key,
+    required this.onSelected,
+    required this.birthYear, // ใช้ค่าที่ส่งมา
+  }) : super(key: key);
 
   @override
   State<DeathYearPage> createState() => _DeathYearPageState();
@@ -14,20 +19,49 @@ class _DeathYearPageState extends State<DeathYearPage> {
 
   @override
   Widget build(BuildContext context) {
-    final years = List.generate(15, (index) {
-      final year = 2568 + index;
-      final age = index + 2;
-      return {'year': year, 'age': age};
+    // ปีพุทธศักราชปัจจุบัน
+    final currentYear = DateTime.now().year + 543;
+
+    // ใช้ birthYear ที่ส่งมาจากหน้า Description
+    final birthYear = widget.birthYear;
+
+    // สร้างรายการปีและคำนวณอายุในปีนั้น
+    final years = List.generate(70, (index) {
+      final year = currentYear + index; // เพิ่มปีจากปีปัจจุบัน
+      final ageInThatYear = year - birthYear; // คำนวณอายุในปีนั้น
+      return {'year': year, 'ageInThatYear': ageInThatYear};
     });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            "ปีตาย",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // จัดข้อความชิดซ้าย
+            children: [
+              Text(
+                "ปีตาย",
+                style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white // ใช้สีขาวในโหมดมืด
+                      : Colors.black, // ใช้สีดำในโหมดสว่าง
+                ),
+              ),
+              const SizedBox(height: 8), // เพิ่มระยะห่างระหว่างข้อความ
+              Text(
+                "คุณคิดว่าคุณจะตายปีใด?",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white // ใช้สีขาวในโหมดมืด
+                      : Colors.black, // ใช้สีดำในโหมดสว่าง
+                ),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -36,25 +70,38 @@ class _DeathYearPageState extends State<DeathYearPage> {
             itemBuilder: (context, index) {
               final item = years[index];
               final isSelected = item['year'] == selectedYear;
-
               return GestureDetector(
                 onTap: () {
                   setState(() {
                     selectedYear = item['year'];
                   });
-                  widget.onSelected(selectedYear!); // เรียก callback
+                  widget.onSelected(selectedYear!);
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                       color: isSelected
-                          ? Colors.orange[100]
-                          : Colors.orange[50],
+                          ? (Theme.of(context).brightness == Brightness.light
+                              ? Colors.black // พื้นหลังเมื่อเลือกในโหมดสว่าง
+                              : Colors.white) // พื้นหลังเมื่อเลือกในโหมดมืด
+                          : (Theme.of(context).brightness == Brightness.light
+                              ? Colors
+                                  .white // พื้นหลังเมื่อยังไม่ได้เลือกในโหมดสว่าง
+                              : Colors
+                                  .black), // พื้นหลังเมื่อยังไม่ได้เลือกในโหมดมืด
                       border: isSelected
-                          ? Border.all(color: Colors.orange, width: 2)
+                          ? Border.all(
+                              color: Theme.of(context).brightness ==
+                                      Brightness.light
+                                  ? Colors
+                                      .white // กรอบสีขาวเมื่อพื้นหลังเป็นสีดำ
+                                  : Colors
+                                      .black, // กรอบสีดำเมื่อพื้นหลังเป็นสีขาว
+                              width: 2,
+                            )
                           : null,
                     ),
                     padding: const EdgeInsets.symmetric(
@@ -64,13 +111,42 @@ class _DeathYearPageState extends State<DeathYearPage> {
                       children: [
                         Text(
                           'พ.ศ. ${item['year']}',
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? (Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? Colors
+                                        .white // สีข้อความเมื่อเลือกในโหมดสว่าง
+                                    : Colors
+                                        .black) // สีข้อความเมื่อเลือกในโหมดมืด
+                                : (Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? Colors
+                                        .black // สีข้อความเมื่อยังไม่ได้เลือกในโหมดสว่าง
+                                    : Colors
+                                        .white), // สีข้อความเมื่อยังไม่ได้เลือกในโหมดมืด
+                          ),
                         ),
                         Text(
-                          'อายุ ${item['age']} ปี',
-                          style: const TextStyle(
-                              fontSize: 16, color: Colors.orange),
+                          'อายุ ${item['ageInThatYear']} ปี',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: isSelected
+                                ? (Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? Colors
+                                        .white // สีข้อความเมื่อเลือกในโหมดสว่าง
+                                    : Colors
+                                        .black) // สีข้อความเมื่อเลือกในโหมดมืด
+                                : (Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? Colors
+                                        .black // สีข้อความเมื่อยังไม่ได้เลือกในโหมดสว่าง
+                                    : Colors
+                                        .white), // สีข้อความเมื่อยังไม่ได้เลือกในโหมดมืด
+                          ),
                         ),
                       ],
                     ),

@@ -37,7 +37,9 @@
   "back": "Back",
   "nextStepDescription": "Next, the website will ask for the day-month-year that you expect to be the time of your death. to estimate the time remaining on this planet.",
   "disclaimer": "This program is not a forecast program. So the time in your life may run out before or after this.",
-  "next": "Next" 
+  "next": "Next",
+  "readyToStartCountdown": "Click the 'Next' to countdown your remaining days."
+
     
   }
   

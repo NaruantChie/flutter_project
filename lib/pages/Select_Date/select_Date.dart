@@ -55,10 +55,21 @@ class _SelectDatePageState extends State<SelectDatePage> {
       List.generate(31, (index) => (index + 1).toString().padLeft(2, '0'));
   void updateDays() {
     if (selectedYear != null && selectedMonth != null) {
-      int daysInMonth = 31; // ค่าที่กำหนดไว้ล่วงหน้า
+      // แปลงปี พ.ศ. เป็น ค.ศ.
+      int yearInCE = int.parse(selectedYear!) - 543;
+
+      // แปลงชื่อเดือนเป็นเลขเดือน
+      final months = getLocalizedMonths(context);
+      int monthIndex = months.indexOf(selectedMonth!) + 1;
+
+      // ตรวจสอบจำนวนวันในเดือนที่เลือก
+      int daysInMonth = DateTime(yearInCE, monthIndex + 1, 0).day;
+
       setState(() {
         days = List.generate(
             daysInMonth, (index) => (index + 1).toString().padLeft(2, '0'));
+
+        // รีเซ็ตวันที่ที่เลือก หากวันที่ที่เลือกเกินจำนวนวันในเดือน
         if (selectedDay != null && int.parse(selectedDay!) > daysInMonth) {
           selectedDay = null;
         }
@@ -302,16 +313,16 @@ class _SelectDatePageState extends State<SelectDatePage> {
                         selectedMonth != null &&
                         selectedDay != null)
                     ? () {
-                        // พิมพ์ค่าที่จะถูกส่งไปยังหน้า SelectionPage
+                        // พิมพ์ค่าที่จะถูกส่ง
                         print({
                           'year': selectedYear,
                           'month': selectedMonth,
                           'day': selectedDay,
                         });
 
-                        // เรียก navigation ไปยัง SelectionPage
+                        // ส่งค่าไปหน้า Description
                         GoRouter.of(context).go(
-                          '/selection',
+                          '/description',
                           extra: {
                             'year': selectedYear,
                             'month': selectedMonth,

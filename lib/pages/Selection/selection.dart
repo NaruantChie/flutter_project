@@ -9,13 +9,16 @@ class SelectionPage extends StatefulWidget {
   final String? year;
   final String? month;
   final String? day;
+  final Function(Map<String, dynamic>) onNext;
 
   const SelectionPage({
-    Key? key,
+    super.key,
     this.year,
     this.month,
     this.day,
-  }) : super(key: key);
+    required this.onNext,
+  });
+
   @override
   State<SelectionPage> createState() => _SelectionPageState();
 }
@@ -72,58 +75,98 @@ class _SelectionPageState extends State<SelectionPage> {
     print('Selected Value: ${selectedTimeEntry['value']}');
   }
 
-  final List<Map<String, dynamic>> sheets = [
-    {
-      'title': 'แผ่นที่ 1',
-      'color': Colors.green[400],
-      'maxChildSize': 0.9,
-      'initialChildSize': 0.9,
-      'minChildSize': 0.3,
-      'isDeathTimePage': true,
-    },
-    {
-      'title': 'แผ่นที่ 2',
-      'color': Colors.blue[400],
-      'maxChildSize': 0.8,
-      'initialChildSize': 0.8,
-      'minChildSize': 0.3,
-      'isDeathDayPage': true,
-    },
-    {
-      'title': 'แผ่นที่ 3',
-      'color': Colors.orange[400],
-      'maxChildSize': 0.7,
-      'initialChildSize': 0.7,
-      'minChildSize': 0.3,
-      'isDeathMonthPage': true,
-    },
-    {
-      'title': 'แผ่นที่ 4',
-      'color': Colors.purple[400],
-      'maxChildSize': 0.6,
-      'initialChildSize': 0.6,
-      'minChildSize': 0.3,
-      'isDeathYearPage': true,
-    },
-  ];
-
-  void bringNextSheetToFront() {
-    setState(() {
-      topSheetIndex = (topSheetIndex - 1 + sheets.length) % sheets.length;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> sheets = [
+      {
+        'title': 'แผ่นที่ 1',
+        'color': Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[800] // สีเข้มในโหมดมืด
+            : Colors.grey[200], // สีอ่อนในโหมดสว่าง
+        'maxChildSize': 0.9,
+        'initialChildSize': 0.9,
+        'minChildSize': 0.3,
+        'isDeathTimePage': true,
+      },
+      {
+        'title': 'แผ่นที่ 2',
+        'color': Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[700]
+            : Colors.grey[300],
+        'maxChildSize': 0.8,
+        'initialChildSize': 0.8,
+        'minChildSize': 0.3,
+        'isDeathDayPage': true,
+      },
+      {
+        'title': 'แผ่นที่ 3',
+        'color': Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[600]
+            : Colors.grey[400],
+        'maxChildSize': 0.7,
+        'initialChildSize': 0.7,
+        'minChildSize': 0.3,
+        'isDeathMonthPage': true,
+      },
+      {
+        'title': 'แผ่นที่ 4',
+        'color': Theme.of(context).brightness == Brightness.light
+            ? Colors.grey[900]
+            : Colors.grey[50],
+        'maxChildSize': 0.6,
+        'initialChildSize': 0.6,
+        'minChildSize': 0.3,
+        'isDeathYearPage': true,
+      },
+    ];
+    void bringNextSheetToFront() {
+      setState(() {
+        topSheetIndex = (topSheetIndex - 1 + sheets.length) % sheets.length;
+      });
+    }
+
+    // เพิ่มฟังก์ชันนำแผ่นก่อนหน้าไปด้านหน้า
+    void bringPreviousSheetToFront() {
+      setState(() {
+        topSheetIndex = (topSheetIndex + 1) % sheets.length;
+      });
+    }
+
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final bool isConfirmButtonEnabled = (topSheetIndex == 3 &&
+            selectedYear.isNotEmpty) || // ต้องเลือกปี
+        (topSheetIndex == 2 && selectedMonth.isNotEmpty) || // ต้องเลือกเดือน
+        (topSheetIndex == 1 &&
+            selectedDay.isNotEmpty &&
+            selectedMonthNumber != null) || // ต้องเลือกวันและมีเดือน
+        (topSheetIndex == 0 && selectedTime.isNotEmpty); // ต้องเลือกเวลา
+
+    final bool isBackButtonEnabled = topSheetIndex < 3;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("กลับ"),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[900] // พื้นหลังเข้มในโหมดมืด
+            : Colors.white, // พื้นหลังอ่อนในโหมดสว่าง
+        title: Text(
+          "กลับ",
+          style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white // ตัวหนังสือสีขาวในโหมดมืด
+                : Colors.black, // ตัวหนังสือสีดำในโหมดสว่าง
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white // ไอคอนสีขาวในโหมดมืด
+                : Colors.black, // ไอคอนสีดำในโหมดสว่าง
+          ),
           onPressed: () {
-            context.go('/description');
+            context.go('/description'); // กลับไปยังหน้า Description
           },
         ),
       ),
@@ -152,7 +195,8 @@ class _SelectionPageState extends State<SelectionPage> {
 
                 return Container(
                   decoration: BoxDecoration(
-                    color: sheets[topSheetIndex]['color'],
+                    color: sheets[topSheetIndex]
+                        ['color'], // ดึงสีจาก sheets ที่ปรับแล้ว
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(50),
                       topRight: Radius.circular(50),
@@ -165,6 +209,7 @@ class _SelectionPageState extends State<SelectionPage> {
                               selectedYear = value.toString();
                             });
                           },
+                          birthYear: int.tryParse(widget.year ?? '') ?? 0,
                         )
                       : isDeathMonthPage
                           ? DeathMonthPage(
@@ -221,80 +266,90 @@ class _SelectionPageState extends State<SelectionPage> {
             ),
           ),
           Positioned(
-            bottom: 50,
+            bottom: 100,
             left: 0,
             right: 0,
             child: Center(
               child: ElevatedButton(
-                onPressed: () {
-                  print('Selected Year: $selectedYear');
-                  print('Selected Month: $selectedMonth');
-                  print('Selected Month Number: $selectedMonthNumber');
-                  print('Selected Day: $selectedDay');
-                  print('Selected Time: $selectedTime');
-
-                  if (topSheetIndex == 3 && selectedYear.isNotEmpty) {
-                    setState(() {
-                      topSheetIndex = 2;
-                    });
-                  } else if (topSheetIndex == 2 && selectedMonth.isNotEmpty) {
-                    setState(() {
-                      topSheetIndex = 1;
-                    });
-                  } else if (topSheetIndex == 1 && selectedDay.isNotEmpty) {
-                    setState(() {
-                      topSheetIndex = 0;
-                    });
-                  } else if (topSheetIndex == 0 && selectedTime.isNotEmpty) {
-                    context.go(
-                      '/resultPage',
-                      extra: {
-                        'fromSelectDate': {
-                          'year': widget.year,
-                          'month': widget.month,
-                          'day': widget.day,
-                        },
-                        'fromSelectionPage': {
-                          'selectedYear': selectedYear,
-                          'selectedMonth': selectedMonth,
-                          'selectedMonthNumber': selectedMonthNumber,
-                          'selectedDay': selectedDay,
-                          'selectedTime': selectedTime,
-                          // เพิ่มค่านี้เข้าไป
-                          'times': times,
-                        },
-                        'summary':
-                            'วันที่เลือก: $selectedDay $selectedMonth ($selectedMonthNumber) พ.ศ. $selectedYear เวลา: $selectedTime',
-                      },
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('กรุณาเลือกรายการให้ครบก่อน'),
-                      ),
-                    );
-                  }
-                },
+                onPressed: isConfirmButtonEnabled
+                    ? () {
+                        if (topSheetIndex == 3) {
+                          setState(() {
+                            topSheetIndex = 2;
+                          });
+                        } else if (topSheetIndex == 2) {
+                          setState(() {
+                            topSheetIndex = 1;
+                          });
+                        } else if (topSheetIndex == 1) {
+                          setState(() {
+                            topSheetIndex = 0;
+                          });
+                        } else if (topSheetIndex == 0) {
+                          context.go(
+                            '/resultPage',
+                            extra: {
+                              'fromSelectDate': {
+                                'year': widget.year,
+                                'month': widget.month,
+                                'day': widget.day,
+                              },
+                              'fromSelectionPage': {
+                                'selectedYear': selectedYear,
+                                'selectedMonth': selectedMonth,
+                                'selectedMonthNumber': selectedMonthNumber,
+                                'selectedDay': selectedDay,
+                                'selectedTime': selectedTime,
+                                'times': times,
+                              },
+                              'summary':
+                                  'วันที่เลือก: $selectedDay $selectedMonth ($selectedMonthNumber) พ.ศ. $selectedYear เวลา: $selectedTime',
+                            },
+                          );
+                        }
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: (topSheetIndex == 3 &&
-                              selectedYear.isNotEmpty) ||
-                          (topSheetIndex == 2 && selectedMonth.isNotEmpty) ||
-                          (topSheetIndex == 1 && selectedDay.isNotEmpty) ||
-                          (topSheetIndex == 0 && selectedTime.isNotEmpty)
-                      ? Colors.blue
-                      : Colors.grey,
+                  backgroundColor:
+                      isConfirmButtonEnabled ? Colors.blue : Colors.grey,
                 ),
                 child: Text(
                   topSheetIndex == 3 && selectedYear.isNotEmpty
                       ? "ตกลง (ไปยังเดือน)"
                       : topSheetIndex == 2 && selectedMonth.isNotEmpty
                           ? "ตกลง (ไปยังวัน)"
-                          : topSheetIndex == 1 && selectedDay.isNotEmpty
+                          : topSheetIndex == 1 &&
+                                  selectedDay.isNotEmpty &&
+                                  selectedMonthNumber != null
                               ? "ตกลง (ไปยังเวลา)"
                               : topSheetIndex == 0 && selectedTime.isNotEmpty
                                   ? "ยืนยันข้อมูล"
                                   : "กรุณาเลือกรายการให้ครบ",
                   style: const TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+
+          // ภายใน Positioned ที่มีปุ่มย้อนกลับ
+          Positioned(
+            bottom: 50,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: ElevatedButton(
+                onPressed: isBackButtonEnabled
+                    ? () {
+                        bringPreviousSheetToFront();
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isBackButtonEnabled ? Colors.blue : Colors.grey,
+                ),
+                child: const Text(
+                  "ย้อนกลับ",
+                  style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
             ),
