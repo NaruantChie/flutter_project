@@ -287,215 +287,236 @@ class _SelectionPageState extends State<SelectionPage>
                     topRight: Radius.circular(50),
                   ),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                        sigmaX: 10, sigmaY: 10), // ปรับระดับความเบลอ
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: Container(
                       decoration: BoxDecoration(
                         color: isDarkMode
-                            ? Colors.white
-                                .withOpacity(0.7) // กระจกสีขาวใสใน Dark Mode
-                            : Colors.black
-                                .withOpacity(0.2), // กระจกสีดำใสใน Light Mode
+                            ? Colors.white.withOpacity(0.7)
+                            : Colors.black.withOpacity(0.2),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(50),
                           topRight: Radius.circular(50),
                         ),
                         border: Border.all(
                           color: isDarkMode
-                              ? Colors.white
-                                  .withOpacity(0.8) // เส้นขอบสีขาวใน Dark Mode
-                              : Colors.black
-                                  .withOpacity(0.5), // เส้นขอบสีดำใน Light Mode
+                              ? Colors.white.withOpacity(0.8)
+                              : Colors.black.withOpacity(0.5),
                           width: 1,
                         ),
-                        boxShadow: [
-                          // เงารอบด้าน
-                          BoxShadow(
-                            color: isDarkMode
-                                ? const Color.fromARGB(255, 212, 202, 202)
-                                    .withOpacity(0.8) // เงาสีดำใน Dark Mode
-                                : Colors.white
-                                    .withOpacity(0.5), // เงาสีขาวใน Light Mode
-                            blurRadius: 20,
-                            spreadRadius: 5, // ขยายพื้นที่เงา
-                            offset: const Offset(0, 10), // เงาอยู่รอบด้าน
+                      ),
+                      child: Column(
+                        children: [
+                          // ข้อความและปุ่มในแถวเดียวกัน
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment
+                                  .spaceBetween, // จัดตำแหน่งปุ่ม
+                              children: [
+                                // ปุ่มย้อนกลับ (อยู่ทางซ้าย)
+                                SizedBox(
+                                  width: 120, // ความกว้างของปุ่ม
+                                  height: 50, // ความสูงของปุ่ม
+                                  child: ElevatedButton(
+                                    onPressed: isBackButtonEnabled
+                                        ? () {
+                                            bringPreviousSheetToFront();
+                                          }
+                                        : null,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isBackButtonEnabled
+                                          ? (Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Colors.white
+                                              : Colors
+                                                  .black) // เปลี่ยนสีตามโหมด
+                                          : Colors.grey,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            10), // เพิ่มมุมโค้ง 20
+                                      ),
+                                    ),
+                                    child: Text(
+                                      "ย้อนกลับ",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Colors
+                                                .black // ตัวอักษรสีดำในโหมดมืด
+                                            : Colors.white,
+                                        // ตัวอักษรสีขาวในโหมดสว่าง
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                // ปุ่มตกลง (อยู่ทางขวา)
+                                SizedBox(
+                                  width: 130, // ความกว้างของปุ่ม
+                                  height: 50, // ความสูงของปุ่ม
+                                  child: ElevatedButton(
+                                    onPressed: isConfirmButtonEnabled
+                                        ? () {
+                                            if (topSheetIndex == 3) {
+                                              setState(() {
+                                                topSheetIndex = 2;
+                                              });
+                                            } else if (topSheetIndex == 2) {
+                                              setState(() {
+                                                topSheetIndex = 1;
+                                              });
+                                            } else if (topSheetIndex == 1) {
+                                              setState(() {
+                                                topSheetIndex = 0;
+                                              });
+                                            } else if (topSheetIndex == 0) {
+                                              context.go(
+                                                '/resultPage',
+                                                extra: {
+                                                  'fromSelectDate': {
+                                                    'year': widget.year,
+                                                    'month': widget.month,
+                                                    'day': widget.day,
+                                                  },
+                                                  'fromSelectionPage': {
+                                                    'selectedYear':
+                                                        selectedYear,
+                                                    'selectedMonth':
+                                                        selectedMonth,
+                                                    'selectedMonthNumber':
+                                                        selectedMonthNumber,
+                                                    'selectedDay': selectedDay,
+                                                    'selectedTime':
+                                                        selectedTime,
+                                                    'times': times,
+                                                  },
+                                                  'summary':
+                                                      'วันที่เลือก: $selectedDay $selectedMonth ($selectedMonthNumber) พ.ศ. $selectedYear เวลา: $selectedTime',
+                                                },
+                                              );
+                                            }
+                                          }
+                                        : null,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isConfirmButtonEnabled
+                                          ? (Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Colors.white
+                                              : Colors
+                                                  .black) // เปลี่ยนสีตามโหมด
+                                          : Colors.grey,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            10), // เพิ่มมุมโค้ง 20
+                                      ),
+                                    ),
+                                    child: Text(
+                                      topSheetIndex == 3 &&
+                                              selectedYear.isNotEmpty
+                                          ? "ตกลง"
+                                          : topSheetIndex == 2 &&
+                                                  selectedMonth.isNotEmpty
+                                              ? "ตกลง"
+                                              : topSheetIndex == 1 &&
+                                                      selectedDay.isNotEmpty &&
+                                                      selectedMonthNumber !=
+                                                          null
+                                                  ? "ตกลง"
+                                                  : topSheetIndex == 0 &&
+                                                          selectedTime
+                                                              .isNotEmpty
+                                                      ? "ยืนยันข้อมูล"
+                                                      : "กรุณาเลือกรายการให้ครบ",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Colors
+                                                .black // ตัวอักษรสีดำในโหมดมืด
+                                            : Colors
+                                                .white, // ตัวอักษรสีขาวในโหมดสว่าง
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          // เงาที่ด้านบน
-                          BoxShadow(
-                            color: isDarkMode
-                                ? Colors.black
-                                    .withOpacity(0.2) // เงาสีดำใน Dark Mode
-                                : const Color.fromARGB(255, 14, 14, 14)
-                                    .withOpacity(0.4), // เงาสีขาวใน Light Mode
-                            blurRadius: 10,
-                            offset: const Offset(0, -4), // เงาชี้ขึ้น (Y ติดลบ)
-                          ),
-                          // เงาที่ด้านล่าง
-                          BoxShadow(
-                            color: isDarkMode
-                                ? const Color.fromARGB(255, 155, 153, 153)
-                                    .withOpacity(0.2) // เงาสีดำใน Dark Mode
-                                : const Color.fromARGB(255, 20, 19, 19)
-                                    .withOpacity(0.8), // เงาสีขาวใน Light Mode
-                            blurRadius: 15,
-                            offset: const Offset(0, 6), // เงาชี้ลง (Y เป็นบวก)
+
+                          Expanded(
+                            child: isDeathYearPage
+                                ? DeathYearPage(
+                                    onSelected: (value) {
+                                      setState(() {
+                                        selectedYear = value.toString();
+                                      });
+                                    },
+                                    birthYear:
+                                        int.tryParse(widget.year ?? '') ?? 0,
+                                  )
+                                : isDeathMonthPage
+                                    ? DeathMonthPage(
+                                        onSelected: (monthNumber) {
+                                          setState(() {
+                                            selectedMonthNumber = monthNumber;
+                                            selectedMonth = months.firstWhere(
+                                                    (m) =>
+                                                        m['key'] ==
+                                                        monthNumber)['value']
+                                                as String;
+                                          });
+                                        },
+                                      )
+                                    : isDeathDayPage
+                                        ? (selectedMonthNumber != null
+                                            ? DeathDayPage(
+                                                month: selectedMonthNumber!,
+                                                monthName: selectedMonth!,
+                                                year: selectedYear.isEmpty
+                                                    ? 2025
+                                                    : int.parse(selectedYear),
+                                                onSelected: (value) {
+                                                  setState(() {
+                                                    selectedDay = value;
+                                                  });
+                                                },
+                                              )
+                                            : const Center(
+                                                child: Text(
+                                                  'กรุณาเลือกเดือนก่อน',
+                                                  style: TextStyle(
+                                                      fontSize: 18,
+                                                      color: Colors.red),
+                                                ),
+                                              ))
+                                        : isDeathTimePage
+                                            ? DeathTimePage(
+                                                onSelected: (value) {
+                                                  setState(() {
+                                                    selectedTime = value;
+                                                    printSelectedTime(value);
+                                                  });
+                                                },
+                                              )
+                                            : Center(
+                                                child: Text(
+                                                  sheets[topSheetIndex]
+                                                      ['title'],
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
                           ),
                         ],
                       ),
-                      child: isDeathYearPage
-                          ? DeathYearPage(
-                              onSelected: (value) {
-                                setState(() {
-                                  selectedYear = value.toString();
-                                });
-                              },
-                              birthYear: int.tryParse(widget.year ?? '') ?? 0,
-                            )
-                          : isDeathMonthPage
-                              ? DeathMonthPage(
-                                  onSelected: (monthNumber) {
-                                    setState(() {
-                                      selectedMonthNumber = monthNumber;
-                                      selectedMonth = months.firstWhere((m) =>
-                                              m['key'] == monthNumber)['value']
-                                          as String;
-                                    });
-                                  },
-                                )
-                              : isDeathDayPage
-                                  ? (selectedMonthNumber != null
-                                      ? DeathDayPage(
-                                          month: selectedMonthNumber!,
-                                          monthName: selectedMonth!,
-                                          year: selectedYear.isEmpty
-                                              ? 2025
-                                              : int.parse(selectedYear),
-                                          onSelected: (value) {
-                                            setState(() {
-                                              selectedDay = value;
-                                            });
-                                          },
-                                        )
-                                      : const Center(
-                                          child: Text(
-                                            'กรุณาเลือกเดือนก่อน',
-                                            style: TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.red),
-                                          ),
-                                        ))
-                                  : isDeathTimePage
-                                      ? DeathTimePage(
-                                          onSelected: (value) {
-                                            setState(() {
-                                              selectedTime = value;
-                                              printSelectedTime(value);
-                                            });
-                                          },
-                                        )
-                                      : Center(
-                                          child: Text(
-                                            sheets[topSheetIndex]['title'],
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
                     ),
                   ),
                 );
               },
-            ),
-          ),
-
-          Positioned(
-            bottom: 100,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: ElevatedButton(
-                onPressed: isConfirmButtonEnabled
-                    ? () {
-                        if (topSheetIndex == 3) {
-                          setState(() {
-                            topSheetIndex = 2;
-                          });
-                        } else if (topSheetIndex == 2) {
-                          setState(() {
-                            topSheetIndex = 1;
-                          });
-                        } else if (topSheetIndex == 1) {
-                          setState(() {
-                            topSheetIndex = 0;
-                          });
-                        } else if (topSheetIndex == 0) {
-                          context.go(
-                            '/resultPage',
-                            extra: {
-                              'fromSelectDate': {
-                                'year': widget.year,
-                                'month': widget.month,
-                                'day': widget.day,
-                              },
-                              'fromSelectionPage': {
-                                'selectedYear': selectedYear,
-                                'selectedMonth': selectedMonth,
-                                'selectedMonthNumber': selectedMonthNumber,
-                                'selectedDay': selectedDay,
-                                'selectedTime': selectedTime,
-                                'times': times,
-                              },
-                              'summary':
-                                  'วันที่เลือก: $selectedDay $selectedMonth ($selectedMonthNumber) พ.ศ. $selectedYear เวลา: $selectedTime',
-                            },
-                          );
-                        }
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      isConfirmButtonEnabled ? Colors.blue : Colors.grey,
-                ),
-                child: Text(
-                  topSheetIndex == 3 && selectedYear.isNotEmpty
-                      ? "ตกลง (ไปยังเดือน)"
-                      : topSheetIndex == 2 && selectedMonth.isNotEmpty
-                          ? "ตกลง (ไปยังวัน)"
-                          : topSheetIndex == 1 &&
-                                  selectedDay.isNotEmpty &&
-                                  selectedMonthNumber != null
-                              ? "ตกลง (ไปยังเวลา)"
-                              : topSheetIndex == 0 && selectedTime.isNotEmpty
-                                  ? "ยืนยันข้อมูล"
-                                  : "กรุณาเลือกรายการให้ครบ",
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ),
-          ),
-
-          // ภายใน Positioned ที่มีปุ่มย้อนกลับ
-          Positioned(
-            bottom: 50,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: ElevatedButton(
-                onPressed: isBackButtonEnabled
-                    ? () {
-                        bringPreviousSheetToFront();
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      isBackButtonEnabled ? Colors.blue : Colors.grey,
-                ),
-                child: const Text(
-                  "ย้อนกลับ",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
             ),
           ),
         ],

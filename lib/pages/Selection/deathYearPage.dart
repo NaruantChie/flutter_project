@@ -36,7 +36,7 @@ class _DeathYearPageState extends State<DeathYearPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start, // จัดข้อความชิดซ้าย
             children: [
@@ -46,18 +46,17 @@ class _DeathYearPageState extends State<DeathYearPage> {
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.white // ใช้สีขาวในโหมดมืด
+                      ? Colors.black // ใช้สีขาวในโหมดมืด
                       : Colors.black, // ใช้สีดำในโหมดสว่าง
                 ),
               ),
-              const SizedBox(height: 8), // เพิ่มระยะห่างระหว่างข้อความ
               Text(
                 "คุณคิดว่าคุณจะตายปีใด?",
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.white // ใช้สีขาวในโหมดมืด
+                      ? Colors.black // ใช้สีขาวในโหมดมืด
                       : Colors.black, // ใช้สีดำในโหมดสว่าง
                 ),
               ),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class DeathDayPage extends StatefulWidget {
   final int month; // เดือนในรูปแบบตัวเลข (1-12)
   final String monthName; // ชื่อเดือน
-  final int year; // ปี
+  final int year; // ปี (พ.ศ.)
   final Function(String) onSelected; // Callback สำหรับส่งวันที่ที่เลือก
 
   const DeathDayPage({
@@ -23,14 +23,29 @@ class _DeathDayPageState extends State<DeathDayPage> {
 
   @override
   Widget build(BuildContext context) {
-    final daysInMonth =
-        DateTime(widget.year, widget.month + 1, 0).day; // จำนวนวันในเดือน
-    final firstDayOfWeek = DateTime(widget.year, widget.month, 1).weekday;
+    // แปลงปี พ.ศ. เป็น ค.ศ.
+    final gregorianYear = widget.year - 543;
 
+    // คำนวณจำนวนวันในเดือน
+    final daysInMonth = DateTime(gregorianYear, widget.month + 1, 0).day;
+
+    // วันแรกของเดือน
+    final firstDayOfWeek = DateTime(gregorianYear, widget.month, 1).weekday;
+
+    // ปรับวันแรกให้เริ่มต้นที่วันอาทิตย์ (1)
+    final adjustedFirstDayOfWeek = (firstDayOfWeek % 7) + 1;
+
+    // Debug: ตรวจสอบค่าต่างๆ
+    debugPrint('Debug: ปีที่ใช้คำนวณ (ค.ศ.): $gregorianYear');
+    debugPrint('Debug: เดือนที่ใช้คำนวณ: ${widget.month}');
+    debugPrint('Debug: จำนวนวันในเดือน: $daysInMonth');
+    debugPrint('Debug: วันแรกของเดือน: $adjustedFirstDayOfWeek');
+
+    // สร้าง Widget สำหรับแสดงวันที่
     final List<Widget> dayWidgets = [];
 
-    // เติมช่องว่างสำหรับวันแรกของเดือน
-    for (int i = 0; i < firstDayOfWeek % 7; i++) {
+    // เติมช่องว่างก่อนวันที่ 1 ให้ตรงกับวันในสัปดาห์ (เริ่มต้นวันอาทิตย์)
+    for (int i = 1; i < adjustedFirstDayOfWeek; i++) {
       dayWidgets.add(const SizedBox());
     }
 
@@ -42,7 +57,7 @@ class _DeathDayPageState extends State<DeathDayPage> {
           setState(() {
             selectedDay = day;
           });
-          widget.onSelected('$day'); // เปลี่ยนเป็นส่งเฉพาะวัน
+          widget.onSelected('$day');
         },
         child: Container(
           decoration: BoxDecoration(
@@ -67,14 +82,114 @@ class _DeathDayPageState extends State<DeathDayPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'เลือกวันที่ในเดือน ${widget.monthName} ปี ${widget.year}',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "วันตาย",
+                style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black
+                      : Colors.black,
+                ),
+              ),
+              Text(
+                "คุณคิดว่าคุณจะตายวันใด?",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black
+                      : Colors.black,
+                ),
+              ),
+            ],
+          ),
         ),
+        const SizedBox(height: 18),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "อา",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.red, // สีแดงสำหรับวันอาทิตย์
+                ),
+              ),
+              Text(
+                "จ",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.black // สีขาวในโหมดมืด
+                      : Colors.black, // สีดำในโหมดสว่าง
+                ),
+              ),
+              Text(
+                "อ",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.black
+                      : Colors.black,
+                ),
+              ),
+              Text(
+                "พ",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.black
+                      : Colors.black,
+                ),
+              ),
+              Text(
+                "พฤ",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.black
+                      : Colors.black,
+                ),
+              ),
+              Text(
+                "ศ",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.black
+                      : Colors.black,
+                ),
+              ),
+              Text(
+                "ส",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.blue, // สีน้ำเงินสำหรับวันเสาร์
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
         Expanded(
-          child: GridView.count(
-            crossAxisCount: 7,
-            children: dayWidgets,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: GridView.count(
+              crossAxisCount: 7,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1.2,
+              children: dayWidgets,
+            ),
           ),
         ),
       ],

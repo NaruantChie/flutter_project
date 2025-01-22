@@ -32,35 +32,43 @@ class _DeathMonthPageState extends State<DeathMonthPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text(
-            'เดือนตาย',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.orange,
-              fontWeight: FontWeight.bold,
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // จัดข้อความชิดซ้าย
+            children: [
+              Text(
+                "เดือนตาย",
+                style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.black // ใช้สีขาวในโหมดมืด
+                      : Colors.black, // ใช้สีดำในโหมดสว่าง
+                ),
+              ),
+              Text(
+                "คุณคิดว่าคุณจะตายเดือนใด?",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.black // ใช้สีขาวในโหมดมืด
+                      : Colors.black, // ใช้สีดำในโหมดสว่าง
+                ),
+              ),
+            ],
           ),
         ),
-        if (selectedMonthKey != null)
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'คุณเลือกเดือนที่: $selectedMonthKey',
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.green,
-              ),
-            ),
-          ),
         Expanded(
           child: GridView.builder(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 20, vertical: 10), // เพิ่ม padding รอบ GridView
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 3,
+              crossAxisCount: 2, // จำนวนคอลัมน์ในแต่ละแถว
+              crossAxisSpacing: 20, // ระยะห่างแนวนอนระหว่างกล่อง
+              mainAxisSpacing: 20, // ระยะห่างแนวตั้งระหว่างกล่อง
+              childAspectRatio: 3, // อัตราส่วนความกว้างต่อความสูงของกล่อง
             ),
             itemCount: months.length,
             itemBuilder: (context, index) {
@@ -72,16 +80,25 @@ class _DeathMonthPageState extends State<DeathMonthPage> {
                   setState(() {
                     selectedMonthKey = month['key'];
                   });
-                  // เพิ่ม print เพื่อแสดงค่า key ที่เลือก
                   print('Selected key (month number): ${month['key']}');
                   widget.onSelected(month['key']);
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.orange[100] : Colors.white,
+                    color: isSelected
+                        ? (Theme.of(context).brightness == Brightness.light
+                            ? Colors.black
+                            : const Color.fromARGB(255, 223, 223, 223))
+                        : (Theme.of(context).brightness == Brightness.light
+                            ? Colors.white
+                            : Colors.black),
                     border: Border.all(
-                      color: isSelected ? Colors.orange : Colors.grey,
-                      width: 2,
+                      color: isSelected
+                          ? (Theme.of(context).brightness == Brightness.light
+                              ? const Color.fromARGB(255, 180, 170, 170)
+                              : Colors.white)
+                          : Colors.grey,
+                      width: 3,
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -89,8 +106,14 @@ class _DeathMonthPageState extends State<DeathMonthPage> {
                   child: Text(
                     month['value'],
                     style: TextStyle(
-                      fontSize: 16,
-                      color: isSelected ? Colors.orange : Colors.grey,
+                      fontSize: 18,
+                      color: isSelected
+                          ? (Theme.of(context).brightness == Brightness.light
+                              ? Colors.white
+                              : Colors.black)
+                          : (Theme.of(context).brightness == Brightness.light
+                              ? Colors.black
+                              : Colors.white),
                       fontWeight: FontWeight.bold,
                     ),
                   ),

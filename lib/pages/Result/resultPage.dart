@@ -166,96 +166,156 @@ class _ResultPageState extends State<ResultPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ตรวจสอบโหมดธีมปัจจุบัน
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode ? Colors.black : Colors.white;
+    final textColor = isDarkMode ? Colors.white : Colors.black;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Result Page'),
+        backgroundColor: backgroundColor,
+        iconTheme: IconThemeData(color: textColor),
+        title: Text(
+          'กลับ',
+          style: TextStyle(color: textColor),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: goBackToSelection,
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'ค่าจาก SelectDatePage:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const Divider(),
-            Text('ปี: ${widget.fromSelectDate?['year'] ?? 'ไม่ระบุ'}'),
-            Text('เดือน: ${widget.fromSelectDate?['month'] ?? 'ไม่ระบุ'}'),
-            Text('วัน: ${widget.fromSelectDate?['day'] ?? 'ไม่ระบุ'}'),
-            const Divider(thickness: 1.5, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'ค่าจาก SelectionPage:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const Divider(),
-            Text(
-                'ปีที่เลือก: ${widget.fromSelectionPage?['selectedYear'] ?? 'ไม่ระบุ'}'),
-            Text(
-                'เดือนที่เลือก: ${widget.fromSelectionPage?['selectedMonth'] ?? 'ไม่ระบุ'}'),
-            Text(
-                'วันที่เลือก: ${widget.fromSelectionPage?['selectedDay'] ?? 'ไม่ระบุ'}'),
-            Text(
-                'เวลาที่เลือก: ${widget.fromSelectionPage?['selectedTime'] ?? 'ไม่ระบุ'}'),
-            const Divider(thickness: 1.5, color: Colors.grey),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: calculateRemainingTime,
-              child: const Text('คำนวณ'),
-            ),
-            const SizedBox(height: 20),
-            if (remainingDays != null && daysLived != null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'ฉันมีชีวิตมาแล้ว $yearsLived ปี หรือ $daysLived วัน',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
+      body: Container(
+        color: backgroundColor, // กำหนดพื้นหลังเป็นสีดำหรือขาว
+        child: Padding(
+          padding: const EdgeInsets.all(25.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  border: Border.all(
+                    color: isDarkMode ? Colors.grey : Colors.black,
+                    width: 2.0,
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'ฉันเหลืออีก $remainingYears ปี หรือ $remainingDays วัน',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            'คุณกำหนดวัน-เวลาตาย ไว้ที่',
+                            style: TextStyle(fontSize: 16.0, color: textColor),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'เวลาเหลืออีก $remainingHours ชั่วโมง $remainingMinutes นาที $remainingSeconds วินาที',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${widget.fromSelectionPage?['selectedDay'] ?? 'ไม่ระบุ'}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.0,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${widget.fromSelectionPage?['selectedMonth'] ?? 'ไม่ระบุ'}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.0,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'พ.ศ ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.0,
+                            color: textColor,
+                          ),
+                        ),
+                        Text(
+                          '${widget.fromSelectionPage?['selectedYear'] ?? 'ไม่ระบุ'}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.0,
+                            color: textColor,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              )
-            else
-              const Text(
-                'กรุณากดปุ่มเพื่อคำนวณ',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
+                    const SizedBox(height: 16.0),
+                    Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            'หน้าถัดไป คือประมาณเวลาชีวิตที่คุณมีเหลืออยู่',
+                            style: TextStyle(fontSize: 16.0, color: textColor),
+                          ),
+                          const SizedBox(height: 8.0),
+                          Text(
+                            'หายใจเข้าลึกๆ แล้วกดดูผลลัพธ์',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20.0,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: goToLifeCountdownPage,
-              child: const Text('ไปหน้า Life Countdown'),
-            ),
-          ],
+              const SizedBox(height: 25.0),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: 200,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            isDarkMode ? Colors.grey[800] : Colors.grey[300],
+                        textStyle: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onPressed: () {
+                        calculateRemainingTime();
+                        if (birthDate != null && deathDate != null) {
+                          GoRouter.of(context).go(
+                            '/lifeCount_downPage',
+                            extra: {
+                              'birthDate': birthDate!,
+                              'deathDate': deathDate!,
+                            },
+                          );
+                        }
+                      },
+                      child: Text(
+                        'ดูผลลัพธ์',
+                        style: TextStyle(color: textColor),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const Spacer(),
+            ],
+          ),
         ),
       ),
     );

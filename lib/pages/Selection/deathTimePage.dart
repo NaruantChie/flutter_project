@@ -21,8 +21,8 @@ class _DeathTimePageState extends State<DeathTimePage> {
     {'key': '21', 'value': '3 ทุ่ม'},
     {
       'key': '-1',
-      'value': 'กำหนดเวลาเอง'
-    }, // ใช้ค่าลบหรือค่าพิเศษที่ไม่ได้อยู่ในช่วงเวลาเพื่อบอกว่าเป็นเวลาที่กำหนดเอง
+      'value': 'กำหนดเวลาเอง',
+    }, // ใช้ค่าพิเศษเพื่อกำหนดเวลาเอง
   ];
 
   String? selectedTime; // เก็บเวลาที่เลือก
@@ -130,112 +130,148 @@ class _DeathTimePageState extends State<DeathTimePage> {
   }
 
   bool _validateTime(String hour, String minute) {
-    if (hour.length != 2 || minute.length != 2) return false; // ตรวจสอบความยาว
+    if (hour.length != 2 || minute.length != 2) return false;
 
     final hourValue = int.tryParse(hour);
     final minuteValue = int.tryParse(minute);
 
-    if (hourValue == null || minuteValue == null) return false; // ตรวจสอบตัวเลข
-    if (hourValue < 0 || hourValue > 23)
-      return false; // ชั่วโมงต้องอยู่ระหว่าง 0-23
-    if (minuteValue < 0 || minuteValue > 59)
-      return false; // นาทีต้องอยู่ระหว่าง 0-59
+    if (hourValue == null || minuteValue == null) return false;
+    if (hourValue < 0 || hourValue > 23) return false;
+    if (minuteValue < 0 || minuteValue > 59) return false;
 
-    return true; // ถ้าผ่านเงื่อนไขทั้งหมด
+    return true;
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDarkMode ? Colors.white : Colors.black;
+    final secondaryColor = isDarkMode ? Colors.black : Colors.white;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'เวลาตาย',
+              Text(
+                "เวลาตาย",
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 40,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black // สีขาวในโหมดมืด
+                      : Colors.black, // สีดำในโหมดสว่าง
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'คุณคิดว่าคุณจะตายเวลาใด?',
+              Text(
+                "คุณคิดว่าคุณจะตายเวลาใด?",
                 style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.orange,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black // สีขาวในโหมดมืด
+                      : Colors.black, // สีดำในโหมดสว่าง
                 ),
               ),
-              if (selectedTime != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    'คุณเลือกเวลา: $selectedTime',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
         const SizedBox(height: 16),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 3.5,
-              ),
-              itemCount: times.length,
-              itemBuilder: (context, index) {
-                final timeKey = times[index]['key'];
-                final timeValue = times[index]['value'];
-                final isSelected = timeValue == selectedTime;
-                return GestureDetector(
-                  onTap: () {
-                    if (timeValue == 'กำหนดเวลาเอง') {
-                      _showCustomTimeDialog();
-                    } else {
-                      setState(() {
-                        selectedTime = timeValue;
-                      });
-                      // เพิ่ม print เพื่อตรวจสอบค่า
-                      print('Selected Key: $timeKey');
-                      print('Selected Value: $timeValue');
-                      widget.onSelected(timeValue!);
-                    }
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.orange[100] : Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: isSelected ? Colors.orange : Colors.grey,
-                        width: 2,
+          child: Column(
+            children: [
+              // ปุ่ม "กำหนดเวลาเอง" แยกออกมาและจัดให้อยู่ตรงกลาง
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: Center(
+                  child: GestureDetector(
+                    onTap: _showCustomTimeDialog,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width *
+                          0.8, // ความกว้าง 80% ของหน้าจอ
+                      height: 50, // ความสูงของปุ่ม
+                      decoration: BoxDecoration(
+                        color: selectedTime == 'กำหนดเวลาเอง'
+                            ? primaryColor
+                            : secondaryColor,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: selectedTime == 'กำหนดเวลาเอง'
+                              ? Colors.grey
+                              : secondaryColor,
+                          width: selectedTime == 'กำหนดเวลาเอง' ? 3 : 2,
+                        ),
                       ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      timeValue!,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.orange : Colors.grey,
+                      alignment: Alignment.center,
+                      child: Text(
+                        'กำหนดเวลาเอง',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: selectedTime == 'กำหนดเวลาเอง'
+                              ? secondaryColor
+                              : primaryColor,
+                        ),
                       ),
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              ),
+
+              // กริดสำหรับปุ่มอื่นๆ
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 3.5,
+                    ),
+                    itemCount: times.length -
+                        1, // ลดจำนวนปุ่มในกริดลง 1 (ไม่รวม "กำหนดเวลาเอง")
+                    itemBuilder: (context, index) {
+                      final timeKey = times[index]['key'];
+                      final timeValue = times[index]['value'];
+                      final isSelected = timeValue == selectedTime;
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedTime = timeValue;
+                          });
+                          widget.onSelected(timeValue!);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected ? primaryColor : secondaryColor,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isSelected ? Colors.grey : secondaryColor,
+                              width: isSelected ? 3 : 2,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            timeValue!,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? secondaryColor : primaryColor,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
