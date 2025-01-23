@@ -84,95 +84,92 @@ final GoRouter _router = GoRouter(
         );
       },
     ),
-GoRoute(
-  path: '/selection',
-  builder: (context, state) {
-    final args = state.extra as Map<String, dynamic>? ?? {};
-    final fromSelectDate =
-        args['fromSelectDate'] as Map<String, dynamic>? ?? {};
+    GoRoute(
+      path: '/selection',
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>? ?? {};
+        final fromSelectDate =
+            args['fromSelectDate'] as Map<String, dynamic>? ?? {};
 
-    print('Received in SelectionPage: $fromSelectDate');
+        print('Received in SelectionPage: $fromSelectDate');
 
-    return SelectionPage(
-      year: fromSelectDate['year'] ?? 'N/A',
-      month: fromSelectDate['month'] ?? 'N/A',
-      day: fromSelectDate['day'] ?? 'N/A',
-      onNext: (selectionData) {
-        GoRouter.of(context).go(
-          '/resultPage',
-          extra: {
-            'fromSelectDate': fromSelectDate,
-            'fromSelectionPage': selectionData,
+        return SelectionPage(
+          year: fromSelectDate['year'] ?? 'N/A',
+          month: fromSelectDate['month'] ?? 'N/A',
+          day: fromSelectDate['day'] ?? 'N/A',
+          onNext: (selectionData) {
+            GoRouter.of(context).go(
+              '/resultPage',
+              extra: {
+                'fromSelectDate': fromSelectDate,
+                'fromSelectionPage': selectionData,
+              },
+            );
           },
         );
       },
-    );
-  },
-),
+    ),
+    GoRoute(
+      path: '/death_year',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?; // รับค่า extra
+        final birthYear =
+            int.parse(extra?['birthYear'] ?? '0'); // ดึง birthYear ที่ส่งมา
 
-GoRoute(
-  path: '/death_year',
-  builder: (context, state) {
-    final extra = state.extra as Map<String, dynamic>?; // รับค่า extra
-    final birthYear = int.parse(extra?['birthYear'] ?? '0'); // ดึง birthYear ที่ส่งมา
+        return DeathYearPage(
+          onSelected: (selectedYear) {
+            // เมื่อเลือกปีสำเร็จ นำทางไปหน้า death_month
+            GoRouter.of(context).go(
+              '/death_month',
+              extra: {
+                'selectedYear': selectedYear, // ส่งปีที่เลือกไป
+              },
+            );
+          },
+          birthYear: birthYear, // ส่ง birthYear ไปยัง DeathYearPage
+        );
+      },
+    ),
+    GoRoute(
+      path: '/death_month',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?; // รับค่า extra
+        final selectedYear =
+            extra?['selectedYear'] ?? DateTime.now().year; // รับปีที่ส่งมา
 
-    return DeathYearPage(
-      onSelected: (selectedYear) {
-        // เมื่อเลือกปีสำเร็จ นำทางไปหน้า death_month
-        GoRouter.of(context).go(
-          '/death_month',
-          extra: {
-            'selectedYear': selectedYear, // ส่งปีที่เลือกไป
+        return DeathMonthPage(
+          onSelected: (selectedMonth) {
+            // เมื่อเลือกเดือนสำเร็จ นำทางไปหน้า death_day
+            context.go(
+              '/death_day',
+              extra: {
+                'selectedMonth': selectedMonth, // ส่งเดือนที่เลือกไป
+                'selectedYear': selectedYear, // ส่งปีที่เลือกไป
+              },
+            );
           },
         );
       },
-      birthYear: birthYear, // ส่ง birthYear ไปยัง DeathYearPage
-    );
-  },
-),
+    ),
+    GoRoute(
+      path: '/death_day',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?; // รับค่า extra
+        final selectedMonth =
+            extra?['selectedMonth'] ?? 1; // เดือนในรูปแบบตัวเลข
+        final selectedYear =
+            extra?['selectedYear'] ?? DateTime.now().year; // ปีที่ส่งมา
 
-
-
-
- GoRoute(
-  path: '/death_month',
-  builder: (context, state) {
-    final extra = state.extra as Map<String, dynamic>?; // รับค่า extra
-    final selectedYear = extra?['selectedYear'] ?? DateTime.now().year; // รับปีที่ส่งมา
-
-    return DeathMonthPage(
-      onSelected: (selectedMonth) {
-        // เมื่อเลือกเดือนสำเร็จ นำทางไปหน้า death_day
-        context.go(
-          '/death_day',
-          extra: {
-            'selectedMonth': selectedMonth, // ส่งเดือนที่เลือกไป
-            'selectedYear': selectedYear, // ส่งปีที่เลือกไป
+        return DeathDayPage(
+          month: selectedMonth,
+          monthName: 'มกราคม', // ตัวอย่าง: สามารถส่งชื่อเดือนจริงได้
+          year: selectedYear, // ใช้ปีที่ส่งมา
+          onSelected: (selectedDay) {
+            print('Selected day: $selectedDay');
           },
         );
       },
-    );
-  },
-),
-
-GoRoute(
-  path: '/death_day',
-  builder: (context, state) {
-    final extra = state.extra as Map<String, dynamic>?; // รับค่า extra
-    final selectedMonth = extra?['selectedMonth'] ?? 1; // เดือนในรูปแบบตัวเลข
-    final selectedYear = extra?['selectedYear'] ?? DateTime.now().year; // ปีที่ส่งมา
-
-    return DeathDayPage(
-      month: selectedMonth,
-      monthName: 'มกราคม', // ตัวอย่าง: สามารถส่งชื่อเดือนจริงได้
-      year: selectedYear, // ใช้ปีที่ส่งมา
-      onSelected: (selectedDay) {
-        print('Selected day: $selectedDay');
-      },
-    );
-  },
-),
-
+    ),
     GoRoute(
       path: '/death_time',
       builder: (context, state) => DeathTimePage(
