@@ -1,8 +1,20 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui';
+import 'dart:ui' as ui;
+import 'package:gallery_saver/gallery_saver.dart';
+import 'package:path_provider/path_provider.dart';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:async';
 import 'package:go_router/go_router.dart';
-import 'dart:math' as math; // เพิ่มการ import
+import 'dart:math' as math;
+
+import 'package:permission_handler/permission_handler.dart'; // เพิ่มการ import
 
 class LifeCountdownPage extends StatefulWidget {
   final DateTime deathDate;
@@ -22,7 +34,11 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
   late Timer _timer;
   late Duration _timeRemaining;
   late Duration _totalLifeSpan;
+  final PageController _pageController = PageController();
+  final GlobalKey _captureKey = GlobalKey(); // สร้าง Key สำหรับ RepaintBoundary
 
+  int _selectedPageIndex = 0; // เก็บสถานะหน้าที่ถูกเลือก
+  bool _isAnimating = false; // ป้องกันการทำงานซ้ำซ้อนระหว่างเปลี่ยนหน้า
   @override
   void initState() {
     super.initState();
@@ -31,21 +47,144 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
     _startTimer();
   }
 
+  // เพิ่มฟังก์ชัน _captureWidget ที่นี่
+  Future<ui.Image> _captureWidget() async {
+    if (_captureKey.currentContext == null) {
+      throw Exception("RepaintBoundary ไม่พร้อมใช้งาน");
+    }
+    RenderRepaintBoundary boundary =
+        _captureKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+    print("จับภาพสำเร็จ: $image");
+    return image;
+  }
+
+  void _showShareDialog(BuildContext context) async {
+    // จับภาพหน้าจอ
+    final image = await _captureWidget();
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final pngBytes = byteData!.buffer.asUint8List();
+
+    // แสดง Popup Dialog
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.memory(pngBytes), // แสดงภาพที่จับได้
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                onPressed: () {
+                  // ใส่ฟังก์ชันบันทึกหรือแชร์ภาพในอนาคต
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.save),
+                label: const Text("บันทึกรูป"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _saveImage(Uint8List pngBytes) async {
+    try {
+      if (await Permission.storage.request().isGranted) {
+        final directory = await getTemporaryDirectory();
+        final filePath =
+            "${directory.path}/screenshot_${DateTime.now().millisecondsSinceEpoch}.png";
+        final file = File(filePath);
+
+        // บันทึกไฟล์
+        await file.writeAsBytes(pngBytes);
+        print("ไฟล์ถูกสร้างที่: $filePath");
+
+        // บันทึกไปยังแกลเลอรี
+        final result = await GallerySaver.saveImage(filePath);
+        print("บันทึกไปที่แกลเลอรีสำเร็จหรือไม่: $result");
+        if (result == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("บันทึกภาพสำเร็จ!")),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("ไม่สามารถบันทึกภาพได้!")),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("กรุณาอนุญาตสิทธิ์การจัดเก็บข้อมูล")),
+        );
+      }
+    } catch (e) {
+      print("เกิดข้อผิดพลาด: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("เกิดข้อผิดพลาด: $e")),
+      );
+    }
+  }
+
+  Future<void> _captureAndSaveImage() async {
+    try {
+      // จับภาพหน้าจอ
+      final image = await _captureWidget();
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData != null) {
+        final pngBytes = byteData.buffer.asUint8List();
+
+        // บันทึกภาพ
+        await _saveImage(pngBytes);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("เกิดข้อผิดพลาดในการจับภาพ: $e")),
+      );
+    }
+  }
+
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _timeRemaining = widget.deathDate.difference(DateTime.now());
         if (_timeRemaining.isNegative) {
           _timer.cancel();
+          _pageController.dispose(); // อย่าลืมลบ PageController
         }
       });
     });
+  }
+
+  void _onPageSelected(int pageIndex) {
+    if (_selectedPageIndex != pageIndex && !_isAnimating) {
+      setState(() {
+        _selectedPageIndex = pageIndex;
+        _isAnimating = true;
+      });
+
+      if (_pageController.hasClients) {
+        _pageController
+            .animateToPage(
+          pageIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        )
+            .then((_) {
+          setState(() {
+            _isAnimating = false; // รีเซ็ตสถานะเมื่อเปลี่ยนหน้าเสร็จ
+          });
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
     _timer.cancel();
     super.dispose();
+    _pageController.dispose();
   }
 
   String formatYearsAndDays(Duration duration) {
@@ -94,7 +233,7 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
           const Text(
             "คุณเหลือเวลาอีก",
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
               color: Colors.orange,
             ),
@@ -103,190 +242,272 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
           Text(
             formatDuration(_timeRemaining),
             style: const TextStyle(
-              fontSize: 24,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  0, 20.0, 10.0, 0.0), // ระยะห่างจากขอบ
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // ปุ่มแรก
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: _selectedPageIndex == 0
+                          ? Colors.orange
+                          : Colors.transparent,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: () => _onPageSelected(0),
+                      icon: const Icon(Icons.donut_small),
+                      color: _selectedPageIndex == 0
+                          ? Colors.white
+                          : Colors.orange,
+                    ),
+                  ),
+                  // ปุ่มที่สอง
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: _selectedPageIndex == 1
+                          ? Colors.orange
+                          : Colors.transparent,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: () => _onPageSelected(1),
+                      icon: const Icon(Icons.grid_view),
+                      color: _selectedPageIndex == 1
+                          ? Colors.white
+                          : Colors.orange,
+                    ),
+                  ),
+                  // ปุ่มที่สาม
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: _selectedPageIndex == 2
+                          ? Colors.orange
+                          : Colors.transparent,
+                      border: Border.all(color: Colors.orange, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: () => _onPageSelected(2),
+                      icon: const Icon(Icons.local_fire_department),
+                      color: _selectedPageIndex == 2
+                          ? Colors.white
+                          : Colors.orange,
+                    ),
+                  ),
+                ],
+              )),
           Expanded(
-            child: PageView(
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            child: RepaintBoundary(
+              key: _captureKey, // ใช้ GlobalKey สำหรับการจับภาพ
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  top: 5.0,
+                  bottom: 5.0,
+                  left: 5.0,
+                  right: 5.0,
+                ),
+                // เพิ่ม Padding รอบ PageView
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (pageIndex) {
+                    if (_selectedPageIndex != pageIndex && !_isAnimating) {
+                      setState(() {
+                        _selectedPageIndex = pageIndex;
+                      });
+                    }
+                  },
                   children: [
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 250,
-                      width: 350,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // CustomPaint สำหรับวงกลม
-                          Positioned(
-                            width: 250,
-                            height: 250,
-                            child: CustomPaint(
-                              painter: HalfCircleProgressPainter(
-                                percentage: percentagePassed,
-                              ),
-                            ),
-                          ),
-                          // ข้อความเปอร์เซ็นต์ตรงกลาง
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 0),
+                        SizedBox(
+                          height: 250,
+                          width: 350,
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              const SizedBox(height: 16),
-                              const Text(
-                                "ผ่านไปแล้ว",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                              Positioned(
+                                width: 250,
+                                height: 250,
+                                child: CustomPaint(
+                                  painter: HalfCircleProgressPainter(
+                                    percentage: percentagePassed,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "${percentagePassed.toStringAsFixed(1)}%",
-                                style: const TextStyle(
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    "ผ่านไปแล้ว",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "${percentagePassed.toStringAsFixed(1)}%",
+                                    style: const TextStyle(
+                                      fontSize: 40,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.orange,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                left: 19,
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      width: 64,
+                                      height: 64,
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.withOpacity(0.3),
+                                        borderRadius: BorderRadius.vertical(
+                                          bottom: Radius.circular(32),
+                                        ),
+                                      ),
+                                      child: Icon(FontAwesomeIcons.baby,
+                                          color: const Color.fromARGB(
+                                              255, 75, 75, 75),
+                                          size: 32),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text("เกิด",
+                                        style: TextStyle(color: Colors.black)),
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 19,
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      width: 64,
+                                      height: 64,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.withOpacity(0.3),
+                                        borderRadius: BorderRadius.vertical(
+                                          bottom: Radius.circular(32),
+                                        ),
+                                      ),
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Container(
+                                            width: 38,
+                                            height: 38,
+                                            decoration: BoxDecoration(
+                                              color: Colors.transparent,
+                                              border: Border.all(
+                                                color: Colors.grey,
+                                                width: 2,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          Icon(
+                                            Icons.person,
+                                            color: const Color.fromARGB(
+                                                255, 75, 75, 75),
+                                            size: 32,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      "ตาย",
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                          // ไอคอนด้านล่างซ้าย
-                          // ไอคอนด้านล่างซ้าย
-                          // ไอคอนด้านล่างซ้าย
-                          Positioned(
-                            bottom: 0,
-                            left: 19,
-                            child: Column(
-                              children: [
-                                Container(
-                                  width: 64,
-                                  height: 64,
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange
-                                        .withOpacity(0.3), // สีพื้นหลัง
-                                    borderRadius: BorderRadius.vertical(
-                                      bottom: Radius.circular(
-                                          32), // โค้งเฉพาะด้านล่าง
-                                    ),
-                                  ),
-                                  child: Icon(FontAwesomeIcons.baby,
-                                      color:
-                                          const Color.fromARGB(255, 75, 75, 75),
-                                      size: 32),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text("เกิด",
-                                    style: TextStyle(color: Colors.black)),
-                              ],
-                            ),
-                          ),
-// ไอคอนด้านล่างขวา
-                          Positioned(
-                            bottom: 0,
-                            right: 19,
-                            child: Column(
-                              children: [
-                                Container(
-                                  width: 64,
-                                  height: 64,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey
-                                        .withOpacity(0.3), // สีพื้นหลัง
-                                    borderRadius: BorderRadius.vertical(
-                                      bottom: Radius.circular(
-                                          32), // โค้งเฉพาะด้านล่าง
-                                    ),
-                                  ),
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      // กรอบรอบไอคอน
-                                      Container(
-                                        width: 38,
-                                        height: 38,
-                                        decoration: BoxDecoration(
-                                          color: Colors
-                                              .transparent, // พื้นหลังโปร่งใส
-                                          border: Border.all(
-                                            color: Colors.grey, // สีของกรอบ
-                                            width: 2, // ความหนาของกรอบ
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                              8), // โค้งเล็กน้อย
-                                        ),
-                                      ),
-                                      // ไอคอนรูปคน
-                                      Icon(
-                                        Icons.person,
-                                        color: const Color.fromARGB(
-                                            255, 75, 75, 75),
-                                        size: 32,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text(
-                                  "ตาย",
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Scaffold(
-                  body: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 16),
-                        YearGrid(
-                          startYear:
-                              widget.birthDate.year, // ปีเกิด (ปีเริ่มต้น)
-                          endYear: widget.deathDate.year, // ปีตาย (ปีสุดท้าย)
-                          currentYear: DateTime.now().year, // ปีปัจจุบัน
                         ),
                       ],
                     ),
-                  ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 16),
-                    CandleWidget(
-                      remainingPercentage: (_timeRemaining.inSeconds /
-                              _totalLifeSpan.inSeconds) *
-                          100,
-                    )
-// ใส่ค่าตัวเลขเป็นเปอร์เซ็นต์
+                    Scaffold(
+                      body: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(height: 0),
+                            YearGrid(
+                              startYear: widget.birthDate.year,
+                              endYear: widget.deathDate.year,
+                              currentYear: DateTime.now().year,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 0),
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color.fromRGBO(
+                                  15, 37, 66, 1), // สีฟ้าเข้มแบบกำหนดเอง
+                              borderRadius:
+                                  BorderRadius.circular(16.0), // กำหนดมุมโค้ง
+                            ),
+                            child: Center(
+                              child: CandleWidget(
+                                remainingPercentage: (_timeRemaining.inSeconds /
+                                        _totalLifeSpan.inSeconds) *
+                                    100,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(25.0),
+            padding: const EdgeInsets.only(
+              top: 0.0,
+              bottom: 20.0,
+              left: 40.0,
+              right: 50.0,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.share),
-                  label: const Text("แชร์"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                  ),
+                  onPressed: () async {
+                    await _captureAndSaveImage(); // ใช้ฟังก์ชันใหม่ที่จับภาพและบันทึก
+                  },
+                  icon: const Icon(Icons.save),
+                  label: const Text("บันทึกรูป"),
                 ),
                 ElevatedButton.icon(
                   onPressed: () {},
@@ -299,6 +520,32 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                 ),
               ],
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              top: 0.0,
+              bottom: 60.0,
+              left: 30.0,
+              right: 50.0,
+            ),
+            /*child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.save),
+                  label: const Text("บันทึกรูป"),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {},
+                  label: const Text("เกี่ยวกับเรา"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[300],
+                    foregroundColor: Colors.black,
+                  ),
+                ),
+              ],
+            ),*/
           ),
         ],
       ),
@@ -517,96 +764,101 @@ class YearGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalYears =
-        endYear - startYear - 1; // คำนวณจำนวนปีที่นับ (ไม่นับปีเกิดและปีตาย)
-    final elapsedYears =
-        currentYear - startYear - 1; // ปีที่ผ่านไปแล้ว (ไม่นับปีเกิด)
+    final totalYears = endYear - startYear - 1;
+    final elapsedYears = currentYear - startYear - 1;
+
+    // คำนวณขนาดของแต่ละช่องตามความกว้างของหน้าจอ
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxColumns = 9; // เพิ่มจำนวนคอลัมน์สูงสุด
+    final boxSize = screenWidth / maxColumns - 4; // ลด spacing ให้มากขึ้น
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 5.0, vertical: 10.0), // ลด padding รอบๆ
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8, // ระยะห่างระหว่างคอลัมน์
-            runSpacing: 8, // ระยะห่างระหว่างแถว
-            children: List.generate(totalYears + 2, (index) {
-              // ช่องแรกและช่องสุดท้ายไม่นับปีในช่วง
-              final isFirst = index == 0;
-              final isLast = index == totalYears + 1;
-              final isElapsed = !isFirst &&
-                  !isLast &&
-                  index - 1 <= elapsedYears; // ตรวจสอบว่าผ่านปีหรือยัง
-              final isCurrent = !isFirst &&
-                  !isLast &&
-                  index - 1 == elapsedYears; // ตรวจสอบว่าคือปีปัจจุบัน
-              final isFinalYear =
-                  currentYear == endYear; // ตรวจสอบว่าปีสุดท้ายแล้วหรือไม่
+          const SizedBox(height: 0), // ลดระยะห่างด้านบน
+          SizedBox(
+            height: 350, // กำหนดความสูงที่แน่นอนให้กับ Scrollable area
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 4, // ลดระยะห่างระหว่างคอลัมน์
+                runSpacing: 4, // ลดระยะห่างระหว่างแถว
+                children: List.generate(totalYears + 2, (index) {
+                  final isFirst = index == 0;
+                  final isLast = index == totalYears + 1;
+                  final isElapsed =
+                      !isFirst && !isLast && index - 1 <= elapsedYears;
+                  final isCurrent =
+                      !isFirst && !isLast && index - 1 == elapsedYears;
+                  final isFinalYear = currentYear == endYear;
 
-              return Container(
-                alignment: Alignment.center,
-                width:
-                    isFirst || isLast ? 87 : 40, // ขนาดความกว้างที่แตกต่างกัน
-                height: 35, // ความสูงของทุกช่อง
-                decoration: BoxDecoration(
-                  color: isFirst
-                      ? Colors.orange // สีช่องแรก "เกิด"
-                      : isLast
-                          ? (isFinalYear
-                              ? Color.fromRGBO(
-                                  46, 82, 156, 0.5) // สีพิเศษสำหรับปีสุดท้าย
-                              : const Color.fromRGBO(
-                                  46, 82, 156, 1.0)) // สีช่องสุดท้าย "ตาย"
-                          : isCurrent
-                              ? const Color.fromRGBO(
-                                  46, 82, 156, 1.0) // สีปีปัจจุบัน
-                              : isElapsed
-                                  ? Colors.orange
-                                  : Colors.grey[300], // สีของช่อง
-                  borderRadius: BorderRadius.circular(4), // ความโค้งมุม
-                  boxShadow: isCurrent || isFinalYear
-                      ? [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.5), // เงาสีดำ
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : [],
-                ),
-                child: isFirst
-                    ? Text(
-                        "เกิด",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : isLast
-                        ? (isFinalYear
-                            ? Icon(
-                                Icons.radio_button_on, // ไอคอนสำหรับปีสุดท้าย
-                                color: Colors.orange,
-                              )
-                            : Text(
-                                "ตาย",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ))
-                        : isCurrent
-                            ? Icon(
-                                Icons
-                                    .arrow_circle_right_outlined, // ไอคอนสำหรับปีปัจจุบัน
-                                color: Colors.orange,
-                              )
-                            : Container(), // ช่องอื่นไม่แสดงข้อความ
-              );
-            }),
+                  return Container(
+                    alignment: Alignment.center,
+                    width: isFirst || isLast
+                        ? boxSize * 2.1
+                        : boxSize, // ลดขนาดความกว้าง
+                    height: boxSize * 0.6, // ลดความสูงของช่อง
+                    decoration: BoxDecoration(
+                      color: isFirst
+                          ? Colors.orange
+                          : isLast
+                              ? (isFinalYear
+                                  ? Color.fromRGBO(46, 82, 156, 0.5)
+                                  : const Color.fromRGBO(46, 82, 156, 1.0))
+                              : isCurrent
+                                  ? const Color.fromRGBO(46, 82, 156, 1.0)
+                                  : isElapsed
+                                      ? Colors.orange
+                                      : Colors.grey[300],
+                      borderRadius: BorderRadius.circular(3), // ลดความโค้งมุม
+                      boxShadow: isCurrent || isFinalYear
+                          ? [
+                              BoxShadow(
+                                color: Colors.black
+                                    .withOpacity(0.4), // ลดความเข้มของเงา
+                                blurRadius: 3,
+                                offset: const Offset(0, 1),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: isFirst
+                        ? Text(
+                            "เกิด",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12, // ลดขนาดตัวอักษร
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : isLast
+                            ? (isFinalYear
+                                ? Icon(
+                                    Icons.radio_button_on,
+                                    color: Colors.orange,
+                                    size: boxSize * 0.4, // ลดขนาดไอคอน
+                                  )
+                                : Text(
+                                    "ตาย",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12, // ลดขนาดตัวอักษร
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ))
+                            : isCurrent
+                                ? Icon(
+                                    Icons.arrow_circle_right_outlined,
+                                    color: Colors.orange,
+                                    size: boxSize * 0.4, // ลดขนาดไอคอน
+                                  )
+                                : Container(),
+                  );
+                }),
+              ),
+            ),
           ),
         ],
       ),
@@ -631,18 +883,86 @@ class CandlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.fill
-      ..color = Colors.orange;
-
-    // ฐานเทียน
-    final baseRect = Rect.fromLTWH(0, size.height - 20, size.width, 20);
-    canvas.drawRect(baseRect, paint);
-
     // ความสูงของเทียน
     final candleHeight = size.height * 0.5 * (remainingPercentage / 100);
+    // วาดสี่เหลี่ยมเส้นประ
+    _drawDashedRoundedRectangle(canvas, size); // วาดฐานเทียน
+    _drawCandleBase(canvas, size);
 
-    // วาดตัวเทียนก่อน (เพื่อให้อยู่ด้านหลังเปลวไฟ)
+    // วาดตัวเทียน
+    _drawCandleBody(canvas, size, candleHeight);
+
+    // วาดเส้นแนวตั้ง (เป็นส่วนหนึ่งของเทียน)
+    _drawCandleLine(canvas, size, candleHeight);
+
+    // วาดส่วนที่ละลาย (เป็นส่วนหนึ่งของเทียน)
+    _drawMeltedWax(canvas, size, candleHeight);
+
+    // วาดส่วนประกอบอื่น ๆ ที่เชื่อมโยงกับเทียน
+    _drawAdditionalParts(canvas, size, candleHeight);
+  }
+
+  //////////////////////////////////////////////////////ฐานเทียน
+  void _drawCandleBase(Canvas canvas, Size size) {
+    final basePaint = Paint()..color = Colors.orange;
+    final baseRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.1,
+        size.height * 0.8,
+        size.width * 0.8,
+        size.height * 0.05,
+      ),
+      Radius.circular(20), // มุมโค้งทั้ง 4 มุม
+    );
+    canvas.drawRRect(baseRect, basePaint);
+  }
+
+  //////////////////////////////////////////////////////ฐานเทียน
+  ///
+  ///
+  /// //////////////////////////////////////////////////////เหลี่ยมเส้นประ
+  void _drawDashedRoundedRectangle(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color.fromARGB(255, 163, 160, 160)
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    final dashWidth = 7.0; // ความยาวของเส้น
+    final dashSpace = 4.0; // ระยะห่างระหว่างเส้น
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.39,
+        size.height * 0.3, // ความสูงเริ่มต้น
+        size.width * 0.2,
+        size.height * 0.5, // ความสูงสูงสุดของเทียน
+      ),
+      Radius.circular(10), // มุมโค้ง
+    );
+
+    final path = Path();
+    path.addRRect(rrect);
+
+    final dashedPath = _createDashedPath(path, dashWidth, dashSpace);
+    canvas.drawPath(dashedPath, paint);
+  }
+
+  Path _createDashedPath(Path path, double dashWidth, double dashSpace) {
+    final dashedPath = Path();
+    for (PathMetric pathMetric in path.computeMetrics()) {
+      double distance = 0.0;
+      while (distance < pathMetric.length) {
+        final segmentLength = dashWidth + dashSpace;
+        final start = distance;
+        final end = (distance + dashWidth).clamp(0.0, pathMetric.length);
+        dashedPath.addPath(pathMetric.extractPath(start, end), Offset.zero);
+        distance += segmentLength;
+      }
+    }
+    return dashedPath;
+  }
+
+  //////////////////////////////////////////////////////เหลี่ยมเส้นประ
+  void _drawCandleBody(Canvas canvas, Size size, double candleHeight) {
     final candleBodyPaint = Paint()..color = Colors.orangeAccent;
     final candleBody = Rect.fromLTWH(
       size.width * 0.4,
@@ -651,206 +971,280 @@ class CandlePainter extends CustomPainter {
       candleHeight,
     );
     canvas.drawRect(candleBody, candleBodyPaint);
-////////////////////////////////////////////////////////////////////////////
-// วาดขี้เทียนที่ละลาย/*
-    /* final meltedPaint = Paint()
-      ..color = const Color.fromARGB(255, 245, 208, 152).withOpacity(0.8)
+  }
+
+  void _drawCandleLine(Canvas canvas, Size size, double candleHeight) {
+    final linePaint = Paint()
+      ..color = const Color.fromARGB(255, 248, 189, 112)
+      ..strokeWidth = size.width * 0.04;
+
+    final lineStartX = size.width * 0.4;
+    final lineStartY = size.height * 0.3 + (size.height * 0.5 - candleHeight);
+    final lineEndY = size.height * 0.3 + size.height * 0.5;
+
+    canvas.drawLine(
+      Offset(lineStartX, lineStartY),
+      Offset(lineStartX, lineEndY),
+      linePaint,
+    );
+  }
+
+  void _drawMeltedWax(Canvas canvas, Size size, double candleHeight) {
+    final meltedPaint = Paint()
+      ..color = const Color.fromARGB(255, 245, 208, 152)
       ..style = PaintingStyle.fill;
 
     final meltedPath = Path();
-    meltedPath.moveTo(
-        size.width * 0.6,
-        size.height * 0.3 +
-            (size.height * 0.5 - candleHeight)); // จุดเริ่มต้นบนเทียน
-    meltedPath.cubicTo(
-      size.width * 0.7,
-      size.height * 0.1 + (size.height * 0.5 - candleHeight) + 80, // โค้งซ้ายลง
-      size.width * 0.45,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) +
-          30, // จุดต่ำสุดซ้าย
-      size.width * 0.38,
-      size.height * 0.3 +
-          (size.height * 0.4 - candleHeight) +
-          60, // โค้งกลับขึ้น
-    );
-    meltedPath.cubicTo(
-      size.width * 0.1,
-      size.height * 0.1 + (size.height * 0.5 - candleHeight) + 15, // โค้งขวาลง
-      size.width * 0.35,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) +
-          20, // จุดต่ำสุดขวา
-      size.width * 0.8,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight), // กลับไปจุดเริ่มต้น
-    );
-
-    canvas.drawPath(meltedPath, meltedPaint);
-
-    canvas.drawPath(meltedPath, meltedPaint);*/
-////////////////////////////////////////////////////////////////////////////
-    // วาดไส้เทียน (ให้อยู่ด้านหลังเปลวไฟ)
-    final wickPaint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 4.0;
-    final wickOffset = Offset(
-      size.width * 0.5,
-      size.height * 0.3 + (size.height * 0.5 - candleHeight) - 20,
-    );
-    canvas.drawLine(
-      wickOffset,
-      Offset(
-        size.width * 0.5,
+    meltedPath.addRRect(RRect.fromRectAndCorners(
+      Rect.fromLTWH(
+        size.width * 0.35,
         size.height * 0.3 + (size.height * 0.5 - candleHeight),
+        size.width * 0.3,
+        size.height * 0.08,
       ),
-      wickPaint,
+      topLeft: Radius.circular(10),
+      topRight: Radius.circular(10),
+    ));
+    canvas.drawPath(meltedPath, meltedPaint);
+  }
+
+  void _drawAdditionalParts(Canvas canvas, Size size, double candleHeight) {
+    // สี่เหลี่ยมด้านล่างสุด (เป็นส่วนหนึ่งของเทียน)
+    _drawRoundedRect(
+      canvas,
+      size,
+      size.width * 0.39,
+      size.height * 0.3 +
+          (size.height * 0.5 - candleHeight) +
+          size.height * 0.08,
+      size.width * 0.18,
+      size.height * 0.04,
+      10,
+      Colors.grey.withOpacity(0.3),
     );
 
-    // เปลวไฟใหญ่
-    // วาดแสงรอบเปลวไฟ
-    final lightRadius = 100 * flameScale; // ขนาดรัศมีของแสงรอบเปลวไฟ
-    final lightPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          Colors.orange.withOpacity(0.5), // สีใกล้เปลวไฟ
-          Colors.yellow.withOpacity(0.2), // สีไกลออกไป
-          Colors.transparent, // ขอบเขตนอกสุดของแสง
-        ],
-        stops: [0.0, 0.6, 1.0], // ตำแหน่งการเปลี่ยนสี
-      ).createShader(Rect.fromCircle(
-        center: Offset(
-          wickOffset.dx, // ตำแหน่ง X ไม่เปลี่ยน
-          wickOffset.dy - 30, // ขยับขึ้นในแกน Y (เพิ่มค่าลบ)
+    // สี่เหลี่ยมแนวตั้งที่มีมุมโค้งทุกมุม (เป็นส่วนหนึ่งของเทียน)
+    final roundedPaint = Paint()
+      ..color = const Color.fromARGB(255, 245, 208, 152)
+      ..style = PaintingStyle.fill;
+
+    final roundedRectPath = Path();
+    roundedRectPath.addRRect(RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.35,
+        size.height * 0.35 +
+            (size.height * 0.5 - candleHeight) -
+            size.height * 0.05,
+        size.width * 0.1,
+        size.height * 0.15,
+      ),
+      Radius.circular(20),
+    ));
+    canvas.drawPath(roundedRectPath, roundedPaint);
+
+    // สี่เหลี่ยมเล็กเพิ่มเติม (สัมพันธ์กับเทียน)
+    final roundedPaint1 = Paint()
+      ..color = const Color.fromARGB(255, 245, 208, 152)
+      ..style = PaintingStyle.fill;
+
+    final roundedRectPath1 = Path();
+    roundedRectPath1.addRRect(RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.52,
+        size.height * 0.35 +
+            (size.height * 0.5 - candleHeight) -
+            size.height * 0.05,
+        size.width * 0.13,
+        size.height * 0.12,
+      ),
+      Radius.circular(15),
+    ));
+    canvas.drawPath(roundedRectPath1, roundedPaint1);
+
+    // สี่เหลี่ยมแนวนอน (สัมพันธ์กับเทียน)
+    final roundedPaint2 = Paint()
+      ..color = const Color.fromARGB(255, 255, 255, 255)
+      ..style = PaintingStyle.fill;
+
+    final roundedRectPath2 = Path();
+    roundedRectPath2.addRRect(RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.4,
+        size.height * 0.36 +
+            (size.height * 0.5 - candleHeight) -
+            size.height * 0.04,
+        size.width * 0.2,
+        size.height * 0.02,
+      ),
+      Radius.circular(15),
+    ));
+    canvas.drawPath(roundedRectPath2, roundedPaint2);
+
+    ////////////////////////////////////////////////////////////////////////////
+    // วาดเปลวไฟและไส้เทียนเฉพาะเมื่อ remainingPercentage > 10
+    if (remainingPercentage > 2) {
+      // วาดไส้เทียน (ให้อยู่ด้านหลังเปลวไฟ)
+      final wickPaint = Paint()
+        ..color = const Color.fromARGB(255, 255, 255, 255)
+        ..strokeWidth = 4.0;
+      final wickOffset = Offset(
+        size.width * 0.5,
+        size.height * 0.3 + (size.height * 0.5 - candleHeight) - 20,
+      );
+      canvas.drawLine(
+        wickOffset,
+        Offset(
+          size.width * 0.5,
+          size.height * 0.3 + (size.height * 0.5 - candleHeight),
         ),
-        radius: lightRadius,
-      ));
+        wickPaint,
+      );
 
-    // วาดวงกลมแสงรอบเปลวไฟ
-    canvas.drawCircle(
-      Offset(
-        wickOffset.dx, // ตำแหน่ง X
-        wickOffset.dy - 30, // ตำแหน่ง Y ขยับขึ้น
-      ),
-      lightRadius,
-      lightPaint,
-    );
+      // วาดแสงรอบเปลวไฟ
+      final lightRadius = 100 * flameScale; // ขนาดรัศมีของแสงรอบเปลวไฟ
+      final lightPaint = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            Colors.orange.withOpacity(0.5), // สีใกล้เปลวไฟ
+            Colors.yellow.withOpacity(0.2), // สีไกลออกไป
+            Colors.transparent, // ขอบเขตนอกสุดของแสง
+          ],
+          stops: [0.0, 0.6, 1.0], // ตำแหน่งการเปลี่ยนสี
+        ).createShader(Rect.fromCircle(
+          center: Offset(
+            wickOffset.dx, // ตำแหน่ง X ไม่เปลี่ยน
+            wickOffset.dy - 30, // ขยับขึ้นในแกน Y (เพิ่มค่าลบ)
+          ),
+          radius: lightRadius,
+        ));
 
-    /////////////////////////////////////////////////////
-    final flamePath = Path();
-    const flameOffset = 20.0; // เลื่อนเปลวไฟใหญ่ลง
-    flamePath.moveTo(
-      size.width * 0.5,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          120 * flameScale +
-          flameOffset,
-    );
-    flamePath.quadraticBezierTo(
-      size.width * 0.5 - 50 * flameScale,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          40 * flameScale +
-          flameOffset,
-      size.width * 0.5,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          40 * flameScale +
-          flameOffset,
-    );
-    flamePath.quadraticBezierTo(
-      size.width * 0.5 + 50 * flameScale,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          40 * flameScale +
-          flameOffset,
-      size.width * 0.5,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          120 * flameScale +
-          flameOffset,
-    );
+      // วาดวงกลมแสงรอบเปลวไฟ
+      canvas.drawCircle(
+        Offset(
+          wickOffset.dx, // ตำแหน่ง X
+          wickOffset.dy - 30, // ตำแหน่ง Y ขยับขึ้น
+        ),
+        lightRadius,
+        lightPaint,
+      );
 
-    final flamePaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.bottomCenter,
-        end: Alignment.topCenter,
-        colors: [Colors.orange, Colors.yellow, Colors.white],
-      ).createShader(Rect.fromCircle(
-        center: Offset(
-            size.width * 0.5,
-            size.height * 0.3 +
-                (size.height * 0.5 - candleHeight) -
-                60 +
-                flameOffset),
-        radius: 50,
-      ));
+      /////////////////////////////////////////////////////
+      final flamePath = Path();
+      const flameOffset = 20.0; // เลื่อนเปลวไฟใหญ่ลง
+      flamePath.moveTo(
+        size.width * 0.5,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            120 * flameScale +
+            flameOffset,
+      );
+      flamePath.quadraticBezierTo(
+        size.width * 0.5 - 50 * flameScale,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            40 * flameScale +
+            flameOffset,
+        size.width * 0.5,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            40 * flameScale +
+            flameOffset,
+      );
+      flamePath.quadraticBezierTo(
+        size.width * 0.5 + 50 * flameScale,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            40 * flameScale +
+            flameOffset,
+        size.width * 0.5,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            120 * flameScale +
+            flameOffset,
+      );
 
-    canvas.drawPath(flamePath, flamePaint);
+      final flamePaint = Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Colors.orange, Colors.yellow, Colors.white],
+        ).createShader(Rect.fromCircle(
+          center: Offset(
+              size.width * 0.5,
+              size.height * 0.3 +
+                  (size.height * 0.5 - candleHeight) -
+                  60 +
+                  flameOffset),
+          radius: 50,
+        ));
 
-    // เปลวไฟด้านใน
-    final innerFlamePath = Path();
-    innerFlamePath.moveTo(
-      size.width * 0.5,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          80 * innerFlameScale,
-    );
-    innerFlamePath.quadraticBezierTo(
-      size.width * 0.5 - 35 * innerFlameScale,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          20 * innerFlameScale,
-      size.width * 0.5,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          20 * innerFlameScale,
-    );
-    innerFlamePath.quadraticBezierTo(
-      size.width * 0.5 + 35 * innerFlameScale,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          20 * innerFlameScale,
-      size.width * 0.5,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          80 * innerFlameScale,
-    );
+      canvas.drawPath(flamePath, flamePaint);
 
-    final innerFlamePaint = Paint()..color = Color.fromRGBO(255, 209, 155, 1.0);
-    canvas.drawPath(innerFlamePath, innerFlamePaint);
+      // เปลวไฟด้านใน
+      final innerFlamePath = Path();
+      innerFlamePath.moveTo(
+        size.width * 0.5,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            80 * innerFlameScale,
+      );
+      innerFlamePath.quadraticBezierTo(
+        size.width * 0.5 - 35 * innerFlameScale,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            20 * innerFlameScale,
+        size.width * 0.5,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            20 * innerFlameScale,
+      );
+      innerFlamePath.quadraticBezierTo(
+        size.width * 0.5 + 35 * innerFlameScale,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            20 * innerFlameScale,
+        size.width * 0.5,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            80 * innerFlameScale,
+      );
 
-    // เปลวไฟลูกที่สาม (เล็กที่สุด)
-    final smallestFlamePath = Path();
-    smallestFlamePath.moveTo(
-      size.width * 0.5,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          60 * smallestFlameScale,
-    );
-    smallestFlamePath.quadraticBezierTo(
-      size.width * 0.5 - 22 * smallestFlameScale,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          30 * smallestFlameScale,
-      size.width * 0.5,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          20 * smallestFlameScale,
-    );
-    smallestFlamePath.quadraticBezierTo(
-      size.width * 0.5 + 22 * smallestFlameScale,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          30 * smallestFlameScale,
-      size.width * 0.5,
-      size.height * 0.3 +
-          (size.height * 0.5 - candleHeight) -
-          60 * smallestFlameScale,
-    );
+      final innerFlamePaint = Paint()
+        ..color = Color.fromRGBO(255, 209, 155, 1.0);
+      canvas.drawPath(innerFlamePath, innerFlamePaint);
 
-    final smallestFlamePaint = Paint()..color = Colors.white;
-    canvas.drawPath(smallestFlamePath, smallestFlamePaint);
+      // เปลวไฟลูกที่สาม (เล็กที่สุด)
+      final smallestFlamePath = Path();
+      smallestFlamePath.moveTo(
+        size.width * 0.5,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            60 * smallestFlameScale,
+      );
+      smallestFlamePath.quadraticBezierTo(
+        size.width * 0.5 - 22 * smallestFlameScale,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            30 * smallestFlameScale,
+        size.width * 0.5,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            20 * smallestFlameScale,
+      );
+      smallestFlamePath.quadraticBezierTo(
+        size.width * 0.5 + 22 * smallestFlameScale,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            30 * smallestFlameScale,
+        size.width * 0.5,
+        size.height * 0.3 +
+            (size.height * 0.5 - candleHeight) -
+            60 * smallestFlameScale,
+      );
+
+      final smallestFlamePaint = Paint()..color = Colors.white;
+      canvas.drawPath(smallestFlamePath, smallestFlamePaint);
+    }
   }
 
   @override
@@ -859,6 +1253,23 @@ class CandlePainter extends CustomPainter {
   }
 }
 
+////////////////////////////////////////////////
+/// ฟังก์ชันสำหรับวาดสี่เหลี่ยมพร้อมมุมโค้ง
+void _drawRoundedRect(Canvas canvas, Size size, double x, double y,
+    double width, double height, double radius, Color color) {
+  final paint = Paint()
+    ..color = color
+    ..style = PaintingStyle.fill;
+
+  final path = Path();
+  path.addRRect(RRect.fromRectAndRadius(
+    Rect.fromLTWH(x, y, width, height),
+    Radius.circular(radius),
+  ));
+  canvas.drawPath(path, paint);
+}
+
+////////////////////////////////////////////////
 class CandleWidget extends StatefulWidget {
   final double remainingPercentage;
 
