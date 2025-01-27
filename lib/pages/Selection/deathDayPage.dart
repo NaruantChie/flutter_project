@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DeathDayPage extends StatefulWidget {
   final int month; // เดือนในรูปแบบตัวเลข (1-12)
@@ -23,6 +24,8 @@ class _DeathDayPageState extends State<DeathDayPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     // แปลงปี พ.ศ. เป็น ค.ศ.
     final gregorianYear = widget.year - 543;
 
@@ -89,7 +92,7 @@ class _DeathDayPageState extends State<DeathDayPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "วันตาย",
+                localizations.deathDayTitle,
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
@@ -99,9 +102,9 @@ class _DeathDayPageState extends State<DeathDayPage> {
                 ),
               ),
               Text(
-                "คุณคิดว่าคุณจะตายวันใด?",
+                localizations.deathDayQuestion,
                 style: TextStyle(
-                  fontSize: 25,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).brightness == Brightness.dark
                       ? Colors.black
@@ -118,59 +121,34 @@ class _DeathDayPageState extends State<DeathDayPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "อา",
+                localizations.sunday,
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.red, // สีแดงสำหรับวันอาทิตย์
                 ),
               ),
               Text(
-                "จ",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.black // สีขาวในโหมดมืด
-                      : Colors.black, // สีดำในโหมดสว่าง
-                ),
+                localizations.monday,
+                style: const TextStyle(fontSize: 18, color: Colors.black),
               ),
               Text(
-                "อ",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.black
-                      : Colors.black,
-                ),
+                localizations.tuesday,
+                style: const TextStyle(fontSize: 18, color: Colors.black),
               ),
               Text(
-                "พ",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.black
-                      : Colors.black,
-                ),
+                localizations.wednesday,
+                style: const TextStyle(fontSize: 18, color: Colors.black),
               ),
               Text(
-                "พฤ",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.black
-                      : Colors.black,
-                ),
+                localizations.thursday,
+                style: const TextStyle(fontSize: 18, color: Colors.black),
               ),
               Text(
-                "ศ",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.black
-                      : Colors.black,
-                ),
+                localizations.friday,
+                style: const TextStyle(fontSize: 18, color: Colors.black),
               ),
               Text(
-                "ส",
+                localizations.saturday,
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.blue, // สีน้ำเงินสำหรับวันเสาร์

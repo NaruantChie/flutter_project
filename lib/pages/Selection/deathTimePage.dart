@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DeathTimePage extends StatefulWidget {
   final Function(String) onSelected; // Callback สำหรับส่งค่าที่เลือก
@@ -10,35 +11,21 @@ class DeathTimePage extends StatefulWidget {
 }
 
 class _DeathTimePageState extends State<DeathTimePage> {
-  final List<Map<String, String>> times = [
-    {'key': '0', 'value': 'เที่ยงคืน'},
-    {'key': '3', 'value': 'ตี 3'},
-    {'key': '6', 'value': '6 โมงเช้า'},
-    {'key': '9', 'value': '9 โมงเช้า'},
-    {'key': '12', 'value': 'เที่ยงวัน'},
-    {'key': '15', 'value': 'บ่าย 3'},
-    {'key': '18', 'value': '6 โมงเย็น'},
-    {'key': '21', 'value': '3 ทุ่ม'},
-    {
-      'key': '-1',
-      'value': 'กำหนดเวลาเอง',
-    }, // ใช้ค่าพิเศษเพื่อกำหนดเวลาเอง
-  ];
-
   String? selectedTime; // เก็บเวลาที่เลือก
 
   void _showCustomTimeDialog() {
     TextEditingController hourController = TextEditingController();
     TextEditingController minuteController = TextEditingController();
+    final localizations = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text(
-            'กำหนดเวลาเอง',
+          title: Text(
+            localizations.customTimeDialogTitle,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -64,10 +51,8 @@ class _DeathTimePageState extends State<DeathTimePage> {
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
                       ':',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                   ),
                   SizedBox(
@@ -87,9 +72,9 @@ class _DeathTimePageState extends State<DeathTimePage> {
                 ],
               ),
               const SizedBox(height: 10),
-              const Text(
-                'กรุณาป้อนเวลาในรูปแบบ 24 ชั่วโมง (HH:MM)',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+              Text(
+                localizations.customTimeDialogHint,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),
@@ -98,7 +83,7 @@ class _DeathTimePageState extends State<DeathTimePage> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('ยกเลิก'),
+              child: Text(localizations.cancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -114,14 +99,14 @@ class _DeathTimePageState extends State<DeathTimePage> {
                   Navigator.pop(context);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('รูปแบบเวลาไม่ถูกต้อง'),
-                      duration: Duration(seconds: 2),
+                    SnackBar(
+                      content: Text(localizations.invalidTimeFormat),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 }
               },
-              child: const Text('ตกลง'),
+              child: Text(localizations.confirm),
             ),
           ],
         );
@@ -144,6 +129,19 @@ class _DeathTimePageState extends State<DeathTimePage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
+    final List<Map<String, String>> times = [
+      {'key': '0', 'value': localizations.midnight},
+      {'key': '3', 'value': localizations.threeAM},
+      {'key': '6', 'value': localizations.sixAM},
+      {'key': '9', 'value': localizations.nineAM},
+      {'key': '12', 'value': localizations.noon},
+      {'key': '15', 'value': localizations.threePM},
+      {'key': '18', 'value': localizations.sixPM},
+      {'key': '21', 'value': localizations.ninePM},
+      {'key': '-1', 'value': localizations.customTime},
+    ];
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDarkMode ? Colors.white : Colors.black;
     final secondaryColor = isDarkMode ? Colors.black : Colors.white;
@@ -157,23 +155,19 @@ class _DeathTimePageState extends State<DeathTimePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "เวลาตาย",
+                localizations.deathTimeTitle,
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black // สีขาวในโหมดมืด
-                      : Colors.black, // สีดำในโหมดสว่าง
+                  color: primaryColor,
                 ),
               ),
               Text(
-                "คุณคิดว่าคุณจะตายเวลาใด?",
+                localizations.deathTimeQuestion,
                 style: TextStyle(
-                  fontSize: 25,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black // สีขาวในโหมดมืด
-                      : Colors.black, // สีดำในโหมดสว่าง
+                  color: primaryColor,
                 ),
               ),
             ],
@@ -207,7 +201,7 @@ class _DeathTimePageState extends State<DeathTimePage> {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        'กำหนดเวลาเอง',
+                        localizations.customTimeDialogTitle,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

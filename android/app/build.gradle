@@ -9,14 +9,14 @@ android {
     namespace = "com.example.life_countdown"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
-
+   
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = "1.8" 
     }
 
     defaultConfig {
@@ -37,6 +37,14 @@ android {
             signingConfig = signingConfigs.debug
         }
     }
+}
+dependencies {
+    implementation 'androidx.annotation:annotation:1.6.0'
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-process:2.6.1'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.10"
+
 }
 
 flutter {

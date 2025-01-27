@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'dart:ui' as ui;
 import 'package:gallery_saver/gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -47,14 +48,17 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
     _startTimer();
   }
 
-  // เพิ่มฟังก์ชัน _captureWidget ที่นี่
   Future<ui.Image> _captureWidget() async {
     if (_captureKey.currentContext == null) {
       throw Exception("RepaintBoundary ไม่พร้อมใช้งาน");
     }
+
+    // รอให้ frame rendering เสร็จสมบูรณ์
+    await Future.delayed(const Duration(milliseconds: 50));
     RenderRepaintBoundary boundary =
         _captureKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+
+    ui.Image image = await boundary.toImage(pixelRatio: 1.5);
     print("จับภาพสำเร็จ: $image");
     return image;
   }
@@ -194,11 +198,18 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
   }
 
   String formatDuration(Duration duration) {
+    final localizations = AppLocalizations.of(context)!;
+
     final days = duration.inDays;
     final hours = duration.inHours % 24;
     final minutes = duration.inMinutes % 60;
     final seconds = duration.inSeconds % 60;
-    return "$days วัน $hours ชั่วโมง $minutes นาที $seconds วินาที";
+
+    // ประกอบข้อความเอง
+    return "${days} ${localizations.dayLabel} "
+        "${hours} ${localizations.hourLabel} "
+        "${minutes} ${localizations.minuteLabel} "
+        "${seconds} ${localizations.secondLabel}";
   }
 
   @override
@@ -213,26 +224,45 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Life Countdown",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
         backgroundColor: Colors.transparent,
+        centerTitle: true, // จัด title ให้อยู่ตรงกลาง
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.go('/');
-          },
+        title: Row(
+          mainAxisSize: MainAxisSize.min, // จัดขนาด Row ให้พอดีกับเนื้อหา
+          children: [
+            Container(
+              width: 50, // ขนาดของพื้นที่รอบรูปภาพ
+              height: 50,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(
+                    255, 0, 0, 0), // สีพื้นหลัง (เปลี่ยนได้ตามต้องการ)
+                borderRadius: BorderRadius.circular(12), // มุมมน
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0), // เพิ่ม padding ให้รูปภาพ
+                child: Image.asset(
+                  'assets/images/hourglass.png', // ใช้รูปภาพที่อัปโหลด
+                  color: Colors.white, // เปลี่ยนสีรูปภาพ (ถ้ารูปเป็นโมโนโครม)
+                  fit: BoxFit.contain, // ปรับให้รูปอยู่ในกรอบ
+                ),
+              ),
+            ),
+            const SizedBox(width: 8), // เพิ่มระยะห่างระหว่างรูปภาพกับข้อความ
+            Text(
+              AppLocalizations.of(context)!
+                  .appTitle, // ดึงข้อความจาก localization
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
       ),
       body: Column(
         children: [
           const SizedBox(height: 16),
-          const Text(
-            "คุณเหลือเวลาอีก",
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!
+                .timeRemainingTitle, // ดึงข้อความจาก localization
+            style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
               color: Colors.orange,
@@ -353,9 +383,10 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const SizedBox(height: 16),
-                                  const Text(
-                                    "ผ่านไปแล้ว",
-                                    style: TextStyle(
+                                  Text(
+                                    AppLocalizations.of(context)!
+                                        .timeElapsedTitle, // ดึงข้อความจาก localization
+                                    style: const TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
@@ -392,8 +423,12 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                                           size: 32),
                                     ),
                                     const SizedBox(height: 4),
-                                    const Text("เกิด",
-                                        style: TextStyle(color: Colors.black)),
+                                    Text(
+                                      AppLocalizations.of(context)!
+                                          .birthTitle, // ดึงข้อความจาก localization
+                                      style:
+                                          const TextStyle(color: Colors.black),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -437,9 +472,11 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                                       ),
                                     ),
                                     const SizedBox(height: 4),
-                                    const Text(
-                                      "ตาย",
-                                      style: TextStyle(color: Colors.black),
+                                    Text(
+                                      AppLocalizations.of(context)!
+                                          .deathTitle, // ดึงข้อความจาก localization
+                                      style:
+                                          const TextStyle(color: Colors.black),
                                     ),
                                   ],
                                 ),
@@ -507,15 +544,24 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                     await _captureAndSaveImage(); // ใช้ฟังก์ชันใหม่ที่จับภาพและบันทึก
                   },
                   icon: const Icon(Icons.save),
-                  label: const Text("บันทึกรูป"),
+                  label: Text(
+                    AppLocalizations.of(context)!
+                        .saveImage, // ดึงข้อความจาก localization
+                  ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.refresh),
-                  label: const Text("เริ่มใหม่"),
+                  onPressed: () {
+                    context.go('/'); // ย้อนกลับไปยังหน้าแรก
+                  },
+                  icon: const Icon(Icons.refresh), // ไอคอนลูกศรย้อนกลับ
+                  label: Text(
+                    AppLocalizations.of(context)!
+                        .resetButton, // ดึงข้อความจาก localization
+                  ),
+// ข้อความ "เริ่มใหม่"
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300],
-                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.grey[300], // สีพื้นหลังของปุ่ม
+                    foregroundColor: Colors.black, // สีข้อความและไอคอน
                   ),
                 ),
               ],
@@ -826,12 +872,8 @@ class YearGrid extends StatelessWidget {
                     ),
                     child: isFirst
                         ? Text(
-                            "เกิด",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12, // ลดขนาดตัวอักษร
-                              fontWeight: FontWeight.bold,
-                            ),
+                            AppLocalizations.of(context)!.birthTitle,
+                            style: const TextStyle(color: Colors.black),
                           )
                         : isLast
                             ? (isFinalYear
@@ -841,12 +883,9 @@ class YearGrid extends StatelessWidget {
                                     size: boxSize * 0.4, // ลดขนาดไอคอน
                                   )
                                 : Text(
-                                    "ตาย",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12, // ลดขนาดตัวอักษร
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    AppLocalizations.of(context)!
+                                        .deathTitle, // ดึงข้อความจาก localization
+                                    style: const TextStyle(color: Colors.black),
                                   ))
                             : isCurrent
                                 ? Icon(

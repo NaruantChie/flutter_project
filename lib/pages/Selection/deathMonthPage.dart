@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DeathMonthPage extends StatefulWidget {
   final Function(int) onSelected;
@@ -10,25 +11,27 @@ class DeathMonthPage extends StatefulWidget {
 }
 
 class _DeathMonthPageState extends State<DeathMonthPage> {
-  final List<Map<String, dynamic>> months = [
-    {'key': 1, 'value': 'มกราคม'},
-    {'key': 2, 'value': 'กุมภาพันธ์'},
-    {'key': 3, 'value': 'มีนาคม'},
-    {'key': 4, 'value': 'เมษายน'},
-    {'key': 5, 'value': 'พฤษภาคม'},
-    {'key': 6, 'value': 'มิถุนายน'},
-    {'key': 7, 'value': 'กรกฎาคม'},
-    {'key': 8, 'value': 'สิงหาคม'},
-    {'key': 9, 'value': 'กันยายน'},
-    {'key': 10, 'value': 'ตุลาคม'},
-    {'key': 11, 'value': 'พฤศจิกายน'},
-    {'key': 12, 'value': 'ธันวาคม'},
-  ];
-
   int? selectedMonthKey;
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
+    final List<Map<String, dynamic>> months = [
+      {'key': 1, 'value': localizations.january},
+      {'key': 2, 'value': localizations.february},
+      {'key': 3, 'value': localizations.march},
+      {'key': 4, 'value': localizations.april},
+      {'key': 5, 'value': localizations.may},
+      {'key': 6, 'value': localizations.june},
+      {'key': 7, 'value': localizations.july},
+      {'key': 8, 'value': localizations.august},
+      {'key': 9, 'value': localizations.september},
+      {'key': 10, 'value': localizations.october},
+      {'key': 11, 'value': localizations.november},
+      {'key': 12, 'value': localizations.december},
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -38,7 +41,7 @@ class _DeathMonthPageState extends State<DeathMonthPage> {
             crossAxisAlignment: CrossAxisAlignment.start, // จัดข้อความชิดซ้าย
             children: [
               Text(
-                "เดือนตาย",
+                AppLocalizations.of(context)!.deathMonthTitle,
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
@@ -48,9 +51,9 @@ class _DeathMonthPageState extends State<DeathMonthPage> {
                 ),
               ),
               Text(
-                "คุณคิดว่าคุณจะตายเดือนใด?",
+                AppLocalizations.of(context)!.deathMonthQuestion,
                 style: TextStyle(
-                  fontSize: 25,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).brightness == Brightness.light
                       ? Colors.black // ใช้สีขาวในโหมดมืด

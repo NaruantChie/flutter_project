@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -37,20 +38,6 @@ class _SelectionPageState extends State<SelectionPage>
   late AnimationController _imageController;
   late Animation<double> _imageAnimation;
 
-  final List<Map<String, dynamic>> months = [
-    {'key': 1, 'value': 'มกราคม'},
-    {'key': 2, 'value': 'กุมภาพันธ์'},
-    {'key': 3, 'value': 'มีนาคม'},
-    {'key': 4, 'value': 'เมษายน'},
-    {'key': 5, 'value': 'พฤษภาคม'},
-    {'key': 6, 'value': 'มิถุนายน'},
-    {'key': 7, 'value': 'กรกฎาคม'},
-    {'key': 8, 'value': 'สิงหาคม'},
-    {'key': 9, 'value': 'กันยายน'},
-    {'key': 10, 'value': 'ตุลาคม'},
-    {'key': 11, 'value': 'พฤศจิกายน'},
-    {'key': 12, 'value': 'ธันวาคม'},
-  ];
   final List<Map<String, String>> times = [
     {'key': '0', 'value': 'เที่ยงคืน'},
     {'key': '3', 'value': 'ตี 3'},
@@ -100,6 +87,23 @@ class _SelectionPageState extends State<SelectionPage>
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
+    final List<Map<String, dynamic>> months = [
+      {'key': 1, 'value': localizations.january},
+      {'key': 2, 'value': localizations.february},
+      {'key': 3, 'value': localizations.march},
+      {'key': 4, 'value': localizations.april},
+      {'key': 5, 'value': localizations.may},
+      {'key': 6, 'value': localizations.june},
+      {'key': 7, 'value': localizations.july},
+      {'key': 8, 'value': localizations.august},
+      {'key': 9, 'value': localizations.september},
+      {'key': 10, 'value': localizations.october},
+      {'key': 11, 'value': localizations.november},
+      {'key': 12, 'value': localizations.december},
+    ];
+
     final List<Map<String, dynamic>> sheets = [
       {
         'title': 'แผ่นที่ 1',
@@ -178,7 +182,7 @@ class _SelectionPageState extends State<SelectionPage>
       appBar: AppBar(
         backgroundColor: isDarkMode ? Colors.black : Colors.white,
         title: Text(
-          "กลับ",
+          AppLocalizations.of(context)!.back,
           style: TextStyle(
             color: isDarkMode ? Colors.white : Colors.black,
             fontSize: 20,
@@ -338,7 +342,7 @@ class _SelectionPageState extends State<SelectionPage>
                                       ),
                                     ),
                                     child: Text(
-                                      "ย้อนกลับ",
+                                      AppLocalizations.of(context)!.appBarTitle,
                                       style: TextStyle(
                                         fontSize: 16,
                                         color: Theme.of(context).brightness ==
@@ -415,28 +419,33 @@ class _SelectionPageState extends State<SelectionPage>
                                     child: Text(
                                       topSheetIndex == 3 &&
                                               selectedYear.isNotEmpty
-                                          ? "ตกลง"
+                                          ? AppLocalizations.of(context)!.agree
                                           : topSheetIndex == 2 &&
                                                   selectedMonth.isNotEmpty
-                                              ? "ตกลง"
+                                              ? AppLocalizations.of(context)!
+                                                  .agree
                                               : topSheetIndex == 1 &&
                                                       selectedDay.isNotEmpty &&
                                                       selectedMonthNumber !=
                                                           null
-                                                  ? "ตกลง"
+                                                  ? AppLocalizations.of(
+                                                          context)!
+                                                      .agree
                                                   : topSheetIndex == 0 &&
                                                           selectedTime
                                                               .isNotEmpty
-                                                      ? "ยืนยันข้อมูล"
-                                                      : "กรุณาเลือกรายการให้ครบ",
+                                                      ? AppLocalizations.of(
+                                                              context)!
+                                                          .confirm
+                                                      : AppLocalizations.of(
+                                                              context)!
+                                                          .selectAll,
                                       style: TextStyle(
                                         fontSize: 16,
                                         color: Theme.of(context).brightness ==
                                                 Brightness.dark
-                                            ? Colors
-                                                .black // ตัวอักษรสีดำในโหมดมืด
-                                            : Colors
-                                                .white, // ตัวอักษรสีขาวในโหมดสว่าง
+                                            ? Colors.black
+                                            : Colors.white,
                                       ),
                                     ),
                                   ),
@@ -483,12 +492,14 @@ class _SelectionPageState extends State<SelectionPage>
                                                   });
                                                 },
                                               )
-                                            : const Center(
+                                            : Center(
                                                 child: Text(
-                                                  'กรุณาเลือกเดือนก่อน',
-                                                  style: TextStyle(
-                                                      fontSize: 18,
-                                                      color: Colors.red),
+                                                  AppLocalizations.of(context)!
+                                                      .pleaseSelectMonth,
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    color: Colors.red,
+                                                  ),
                                                 ),
                                               ))
                                         : isDeathTimePage

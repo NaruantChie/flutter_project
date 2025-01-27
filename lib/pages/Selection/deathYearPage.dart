@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DeathYearPage extends StatefulWidget {
   final Function(int) onSelected;
@@ -19,6 +20,8 @@ class _DeathYearPageState extends State<DeathYearPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     // ปีพุทธศักราชปัจจุบัน
     final currentYear = DateTime.now().year + 543;
 
@@ -41,23 +44,23 @@ class _DeathYearPageState extends State<DeathYearPage> {
             crossAxisAlignment: CrossAxisAlignment.start, // จัดข้อความชิดซ้าย
             children: [
               Text(
-                "ปีตาย",
+                AppLocalizations.of(context)!.deathYear,
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.black // ใช้สีขาวในโหมดมืด
-                      : Colors.black, // ใช้สีดำในโหมดสว่าง
+                      ? Colors.black // ใช้สีดำในโหมดสว่าง
+                      : Colors.black, // ใช้สีดำในโหมดมืด
                 ),
               ),
               Text(
-                "คุณคิดว่าคุณจะตายปีใด?",
+                AppLocalizations.of(context)!.deathYearQuestion,
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.black // ใช้สีขาวในโหมดมืด
-                      : Colors.black, // ใช้สีดำในโหมดสว่าง
+                      ? Colors.black // ใช้สีดำในโหมดสว่าง
+                      : Colors.black, // ใช้สีดำในโหมดมืด
                 ),
               ),
             ],
@@ -109,7 +112,7 @@ class _DeathYearPageState extends State<DeathYearPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'พ.ศ. ${item['year']}',
+                          '${AppLocalizations.of(context)!.yearLabel_lv1} ${item['year']}',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -129,7 +132,9 @@ class _DeathYearPageState extends State<DeathYearPage> {
                           ),
                         ),
                         Text(
-                          'อายุ ${item['ageInThatYear']} ปี',
+                          AppLocalizations.of(context)!.ageWithYear(
+                            item['ageInThatYear'].toString(),
+                          ),
                           style: TextStyle(
                             fontSize: 16,
                             color: isSelected

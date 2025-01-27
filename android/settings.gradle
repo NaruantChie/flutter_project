@@ -23,3 +23,5 @@ plugins {
 }
 
 include ":app"
+project(':gallery_saver').buildFileName = 'build.gradle'
+
