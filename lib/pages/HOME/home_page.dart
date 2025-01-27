@@ -1,11 +1,14 @@
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
+import 'package:life_countdown/pages/AboutUs/AboutUsPage%20.dart';
 import 'package:life_countdown/pages/PROVIDERS/locale_provider.dart';
 import 'package:life_countdown/pages/PROVIDERS/theme_provider.dart';
+import 'package:life_countdown/pages/Support/supportPage.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -234,7 +237,13 @@ class _HomePageState extends State<HomePage>
                         ),
                       ),
                       onPressed: () {
-                        // การกระทำเมื่อกดปุ่ม "เกี่ยวกับเรา"
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const AboutUsPage(), // หน้าที่จะเปิดใหม่
+                          ),
+                        ); // ใช้ Navigator.push
                       },
                       child: Text(
                         AppLocalizations.of(context)!.aboutUsButton,
@@ -262,14 +271,20 @@ class _HomePageState extends State<HomePage>
                         ),
                       ),
                       onPressed: () {
-                        // การกระทำเมื่อกดปุ่ม "สนับสนุน"
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const SupportPage(), // หน้าที่จะเปิดใหม่
+                          ),
+                        ); // ใช้ Navigator.push
                       },
                       child: Text(
                         AppLocalizations.of(context)!.supportButton,
                         style: const TextStyle(fontSize: 18), // ขนาดตัวอักษร
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
             ),

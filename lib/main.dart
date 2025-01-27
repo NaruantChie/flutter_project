@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:life_countdown/pages/AboutUs/AboutUsPage%20.dart';
 import 'package:life_countdown/pages/Description/description.dart';
 import 'package:life_countdown/pages/HOME/home_page.dart';
 import 'package:life_countdown/pages/LifeCountdown/LifeCountdownPage%20.dart';
@@ -14,6 +15,7 @@ import 'package:life_countdown/pages/Selection/deathMonthPage.dart';
 import 'package:life_countdown/pages/Selection/deathTimePage.dart';
 import 'package:life_countdown/pages/Selection/deathYearPage.dart';
 import 'package:life_countdown/pages/Selection/selection.dart';
+import 'package:life_countdown/pages/Support/supportPage.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -68,6 +70,14 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/select_Date',
       builder: (context, state) => const SelectDatePage(),
+    ),
+    GoRoute(
+      path: '/support_Page',
+      builder: (context, state) => SupportPage(),
+    ),
+    GoRoute(
+      path: '/aboutUs_Page',
+      builder: (context, state) => AboutUsPage(),
     ),
     GoRoute(
       path: '/description',
