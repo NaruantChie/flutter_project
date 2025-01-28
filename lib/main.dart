@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -17,8 +18,12 @@ import 'package:life_countdown/pages/Selection/deathYearPage.dart';
 import 'package:life_countdown/pages/Selection/selection.dart';
 import 'package:life_countdown/pages/Support/supportPage.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // เริ่มต้น Firebase
+  await initializeFirebaseRemoteConfig(); // เริ่มต้น Remote Config
   runApp(
     MultiProvider(
       providers: [
@@ -28,6 +33,22 @@ void main() {
       child: const MyApp(),
     ),
   );
+}
+
+// ฟังก์ชันสำหรับตั้งค่า Remote Config
+Future<void> initializeFirebaseRemoteConfig() async {
+  final remoteConfig = FirebaseRemoteConfig.instance;
+
+  await remoteConfig.setConfigSettings(RemoteConfigSettings(
+    fetchTimeout: const Duration(seconds: 10), // ตั้งเวลาสูงสุดสำหรับ fetch
+    minimumFetchInterval: const Duration(hours: 1), // ระยะเวลาการ fetch ซ้ำ
+  ));
+
+  await remoteConfig.setDefaults(const {
+    'name': 'word', // ค่าเริ่มต้นที่กำหนดไว้
+  });
+
+  await remoteConfig.fetchAndActivate(); // ดึงค่าจาก Firebase
 }
 
 class MyApp extends StatelessWidget {

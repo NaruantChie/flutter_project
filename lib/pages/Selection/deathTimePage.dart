@@ -159,7 +159,7 @@ class _DeathTimePageState extends State<DeathTimePage> {
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
-                  color: primaryColor,
+                  color: Colors.black,
                 ),
               ),
               Text(
@@ -167,7 +167,7 @@ class _DeathTimePageState extends State<DeathTimePage> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: primaryColor,
+                  color: Colors.black,
                 ),
               ),
             ],

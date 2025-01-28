@@ -113,7 +113,12 @@
   "dayLabel_1": "วัน",
   "hourLabel": "ชั่วโมง",
   "minuteLabel": "นาที",
-  "secondLabel": "วินาที"
+  "secondLabel": "วินาที",
+  "closeButtonLabel": "ปิด",
+  "saveImageButtonLabel": "บันทึกรูป",
+  "shareTitle": "แชร์"
+
+
 
 
 

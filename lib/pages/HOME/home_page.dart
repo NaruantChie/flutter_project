@@ -275,7 +275,7 @@ class _HomePageState extends State<HomePage>
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                const SupportPage(), // หน้าที่จะเปิดใหม่
+                                SupportPage(), // หน้าที่จะเปิดใหม่
                           ),
                         ); // ใช้ Navigator.push
                       },

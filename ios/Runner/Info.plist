@@ -41,6 +41,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+		  <!-- Permissions -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>แอปต้องการเข้าถึงคลังภาพของคุณเพื่อบันทึกหรือแชร์รูปภาพ</string>
+    <key>NSCameraUsageDescription</key>
+    <string>แอปต้องการใช้กล้องเพื่อถ่ายภาพ</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>แอปต้องการใช้ไมโครโฟนสำหรับการบันทึกเสียง</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

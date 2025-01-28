@@ -1,37 +1,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-     package="carnegietechnologies.gallery_saver">
+    package="com.example.your_app_name">
+
     <!-- Permissions -->
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="Your App Name"
+        android:label="YourAppName"
         android:icon="@mipmap/ic_launcher"
-        android:requestLegacyExternalStorage="true">
-        <!-- Queries for file saving/sharing -->
-        <queries>
-            <intent>
-                <action android:name="android.intent.action.VIEW" />
-            </intent>
-        </queries>
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config">
 
-        <!-- Your activity -->
-        <activity
-            android:name=".MainActivity"
-            android:launchMode="singleTop"
-            android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|density|layoutDirection|fontScale|uiMode"
-            android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
-            <!-- Specify this to ensure correct behavior -->
-            <meta-data
-                android:name="flutterEmbedding"
-                android:value="2" />
+        <!-- Activities -->
+        <activity android:name=".MainActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>

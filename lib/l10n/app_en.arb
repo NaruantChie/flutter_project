@@ -110,7 +110,12 @@
   "dayLabel_1": "day",
   "hourLabel": "hour",
   "minuteLabel": "minute",
-  "secondLabel": "second"
+  "secondLabel": "second",
+  "saveImageButtonLabel": "Save Image",
+  "closeButtonLabel": "Close",
+  "shareTitle": "Share"
+
+
 
 
 

@@ -29,122 +29,214 @@ class LifeCountdownPage extends StatefulWidget {
   _LifeCountdownPageState createState() => _LifeCountdownPageState();
 }
 
-class _LifeCountdownPageState extends State<LifeCountdownPage> {
+class _LifeCountdownPageState extends State<LifeCountdownPage>
+    with SingleTickerProviderStateMixin {
   late Timer _timer;
   late Duration _timeRemaining;
   late Duration _totalLifeSpan;
   final PageController _pageController = PageController();
   final GlobalKey _captureKey = GlobalKey(); // สร้าง Key สำหรับ RepaintBoundary
+  bool _showCaptureText = false;
+  late AnimationController _controller;
 
   int _selectedPageIndex = 0; // เก็บสถานะหน้าที่ถูกเลือก
   bool _isAnimating = false; // ป้องกันการทำงานซ้ำซ้อนระหว่างเปลี่ยนหน้า
   @override
   void initState() {
     super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1), // ระยะเวลาแอนิเมชัน
+    )..repeat(reverse: true); // เล่นแอนิเมชันซ้ำไปมา
+
     _timeRemaining = widget.deathDate.difference(DateTime.now());
     _totalLifeSpan = widget.deathDate.difference(widget.birthDate);
     _startTimer();
   }
 
+///////////////////////////////////////////////////////////////////////////
+  Future<void> requestPermissions() async {
+    if (Platform.isAndroid) {
+      final photosPermission = await Permission.photos.request();
+      final storagePermission = await Permission.storage.request();
+
+      if (photosPermission.isGranted || storagePermission.isGranted) {
+        debugPrint("Permission granted");
+      } else if (photosPermission.isPermanentlyDenied ||
+          storagePermission.isPermanentlyDenied) {
+        debugPrint("Permission permanently denied");
+        openAppSettings();
+      } else {
+        debugPrint("Permission denied");
+      }
+    } else if (Platform.isIOS) {
+      final photosPermission = await Permission.photos.request();
+      if (!photosPermission.isGranted) {
+        debugPrint("Permission denied");
+        openAppSettings();
+      }
+    }
+  }
+
+// ฟังก์ชันช่วยจัดการผลลัพธ์ของ Permission
+
+///////////////////////////////////////////////////////////////////////////
   Future<ui.Image> _captureWidget() async {
     if (_captureKey.currentContext == null) {
       throw Exception("RepaintBoundary ไม่พร้อมใช้งาน");
     }
-
-    // รอให้ frame rendering เสร็จสมบูรณ์
-    await Future.delayed(const Duration(milliseconds: 50));
     RenderRepaintBoundary boundary =
         _captureKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
 
-    ui.Image image = await boundary.toImage(pixelRatio: 1.5);
-    print("จับภาพสำเร็จ: $image");
-    return image;
-  }
-
-  void _showShareDialog(BuildContext context) async {
-    // จับภาพหน้าจอ
-    final image = await _captureWidget();
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    final pngBytes = byteData!.buffer.asUint8List();
-
-    // แสดง Popup Dialog
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.memory(pngBytes), // แสดงภาพที่จับได้
-              const SizedBox(height: 10),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // ใส่ฟังก์ชันบันทึกหรือแชร์ภาพในอนาคต
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.save),
-                label: const Text("บันทึกรูป"),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    return await boundary.toImage(pixelRatio: 2.0);
   }
 
   Future<void> _saveImage(Uint8List pngBytes) async {
     try {
-      if (await Permission.storage.request().isGranted) {
-        final directory = await getTemporaryDirectory();
-        final filePath =
-            "${directory.path}/screenshot_${DateTime.now().millisecondsSinceEpoch}.png";
-        final file = File(filePath);
+      final directory = await getTemporaryDirectory();
+      final filePath =
+          "${directory.path}/screenshot_${DateTime.now().millisecondsSinceEpoch}.png";
+      final file = File(filePath);
 
-        // บันทึกไฟล์
-        await file.writeAsBytes(pngBytes);
-        print("ไฟล์ถูกสร้างที่: $filePath");
+      await file.writeAsBytes(pngBytes);
+      debugPrint("ไฟล์ถูกสร้างที่: $filePath");
 
-        // บันทึกไปยังแกลเลอรี
-        final result = await GallerySaver.saveImage(filePath);
-        print("บันทึกไปที่แกลเลอรีสำเร็จหรือไม่: $result");
-        if (result == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("บันทึกภาพสำเร็จ!")),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("ไม่สามารถบันทึกภาพได้!")),
-          );
-        }
+      final result = await GallerySaver.saveImage(filePath);
+      if (result == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("บันทึกภาพสำเร็จ!")),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("กรุณาอนุญาตสิทธิ์การจัดเก็บข้อมูล")),
+          const SnackBar(content: Text("ไม่สามารถบันทึกภาพได้!")),
         );
       }
     } catch (e) {
-      print("เกิดข้อผิดพลาด: $e");
+      debugPrint("เกิดข้อผิดพลาด: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("เกิดข้อผิดพลาด: $e")),
       );
     }
   }
 
+  Future<Uint8List> processImage(ui.Image image) async {
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
+
   Future<void> _captureAndSaveImage() async {
     try {
+      setState(() {
+        _showCaptureText = true; // เปิดการแสดงข้อความ
+      });
+
+      // หยุดแอนิเมชันทั้งหมดก่อนจับภาพ
+      _controller.stop();
+
+      // รอให้ UI render เสร็จ
+      await Future.delayed(const Duration(milliseconds: 100));
+
       // จับภาพหน้าจอ
       final image = await _captureWidget();
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData != null) {
         final pngBytes = byteData.buffer.asUint8List();
-
-        // บันทึกภาพ
-        await _saveImage(pngBytes);
+        await _showSaveImageDialog(pngBytes);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("เกิดข้อผิดพลาดในการจับภาพ: $e")),
       );
+    } finally {
+      setState(() {
+        _showCaptureText = false; // ซ่อนข้อความหลังจับภาพ
+      });
+
+      // เริ่มแอนิเมชันอีกครั้งหลังจับภาพเสร็จ
+      _controller.forward();
     }
+  }
+
+  Future<void> _showSaveImageDialog(Uint8List pngBytes) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // หัวข้อ
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!
+                          .shareTitle, // ใช้ข้อความจาก Localization
+                      style: const TextStyle(
+                          fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // แสดงระยะเวลาที่ฟอร์แมตไว้
+
+                const SizedBox(height: 10),
+
+                // แสดงภาพที่จับได้
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.memory(
+                    pngBytes,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // ปุ่ม "ปิด" และ "บันทึกรูป"
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[300],
+                          foregroundColor: Colors.black,
+                        ),
+                        child: Text(
+                            AppLocalizations.of(context)!.closeButtonLabel),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await _saveImage(pngBytes);
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Text(
+                            AppLocalizations.of(context)!.saveImageButtonLabel),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _startTimer() {
@@ -184,9 +276,10 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _controller.dispose(); // ลบ AnimationController
+    _timer.cancel(); // ลบ Timer
+    _pageController.dispose(); // ลบ PageController
     super.dispose();
-    _pageController.dispose();
   }
 
   String formatYearsAndDays(Duration duration) {
@@ -350,17 +443,21 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
               padding: const EdgeInsets.all(5.0), // เพิ่ม Padding รอบ PageView
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.transparent, // พื้นหลังของ PageView
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black // พื้นหลังในโหมดมืด
+                      : Colors.white, // พื้นหลังในโหมดสว่าง
                   border: Border.all(
-                    color: Colors.orange, // สีของกรอบ
-                    width: 10.0, // ความหนาของกรอบ
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey // สีกรอบในโหมดมืด
+                        : Colors.orange, // สีกรอบในโหมดสว่าง
+                    width: 2.0, // ความหนาของกรอบ
                   ),
                   borderRadius:
                       BorderRadius.circular(20.0), // มุมโค้งของกรอบภายนอก
                 ),
                 child: ClipRRect(
                   borderRadius:
-                      BorderRadius.circular(10.0), // มุมโค้งของขอบด้านใน
+                      BorderRadius.circular(18.0), // มุมโค้งของขอบด้านใน
                   child: Container(
                     child: PageView(
                       controller: _pageController,
@@ -372,10 +469,32 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                         }
                       },
                       children: [
+                        // หน้าแรก
                         Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 0),
+                            if (_showCaptureText) ...[
+                              // แสดงข้อความเฉพาะตอนจับภาพ
+                              const SizedBox(height: 25),
+                              Text(
+                                AppLocalizations.of(context)!
+                                    .timeRemainingTitle,
+                                style: const TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                formatDuration(_timeRemaining),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 60),
                             SizedBox(
                               height: 260,
                               width: 350,
@@ -388,7 +507,7 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                                     child: CustomPaint(
                                       painter: HalfCircleProgressPainter(
                                         percentage: percentagePassed,
-                                        context: context, // ส่ง context เข้าไป
+                                        context: context,
                                       ),
                                     ),
                                   ),
@@ -398,7 +517,7 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                                       const SizedBox(height: 16),
                                       Text(
                                         AppLocalizations.of(context)!
-                                            .timeElapsedTitle, // ดึงข้อความจาก localization
+                                            .timeElapsedTitle,
                                         style: const TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
@@ -436,7 +555,7 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                                         const SizedBox(height: 4),
                                         Text(
                                           AppLocalizations.of(context)!
-                                              .birthTitle, // ดึงข้อความจาก localization
+                                              .birthTitle,
                                         ),
                                       ],
                                     ),
@@ -481,7 +600,7 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                                         const SizedBox(height: 4),
                                         Text(
                                           AppLocalizations.of(context)!
-                                              .deathTitle, // ดึงข้อความจาก localization
+                                              .deathTitle,
                                         ),
                                       ],
                                     ),
@@ -491,16 +610,37 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                             ),
                           ],
                         ),
+
+                        // หน้าอื่นๆ
                         Scaffold(
                           body: Center(
                             child: ClipRRect(
-                              borderRadius:
-                                  BorderRadius.circular(16.0), // ปรับค่ามุมโค้ง
+                              borderRadius: BorderRadius.circular(12.0),
                               child: Container(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const SizedBox(height: 0),
+                                    if (_showCaptureText) ...[
+                                      // แสดงข้อความเฉพาะตอนจับภาพ
+                                      Text(
+                                        AppLocalizations.of(context)!
+                                            .timeRemainingTitle,
+                                        style: const TextStyle(
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.orange,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        formatDuration(_timeRemaining),
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 10),
                                     YearGrid(
                                       startYear: widget.birthDate.year,
                                       endYear: widget.deathDate.year,
@@ -512,17 +652,37 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
                             ),
                           ),
                         ),
+
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const SizedBox(height: 0),
+                            if (_showCaptureText) ...[
+                              // แสดงข้อความเฉพาะตอนจับภาพ
+                              const SizedBox(height: 8),
+                              Text(
+                                AppLocalizations.of(context)!
+                                    .timeRemainingTitle,
+                                style: const TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                formatDuration(_timeRemaining),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 16),
                             Expanded(
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: const Color.fromRGBO(
-                                      15, 37, 66, 1), // สีฟ้าเข้มแบบกำหนดเอง
-                                  borderRadius: BorderRadius.circular(
-                                      10.0), // กำหนดมุมโค้ง
+                                  color: const Color.fromRGBO(15, 37, 66, 1),
+                                  borderRadius: BorderRadius.circular(10.0),
                                 ),
                                 child: Center(
                                   child: CandleWidget(
@@ -555,14 +715,16 @@ class _LifeCountdownPageState extends State<LifeCountdownPage> {
               children: [
                 ElevatedButton.icon(
                   onPressed: () async {
-                    await _captureAndSaveImage(); // ใช้ฟังก์ชันใหม่ที่จับภาพและบันทึก
+                    await requestPermissions();
+                    await _captureAndSaveImage();
                   },
                   icon: const Icon(Icons.save),
                   label: Text(
-                    AppLocalizations.of(context)!
-                        .saveImage, // ดึงข้อความจาก localization
+                    AppLocalizations.of(context)!.saveImage,
                   ),
                 ),
+
+                /////////////////////////////////////////////////////
                 ElevatedButton.icon(
                   onPressed: () {
                     context.go('/'); // ย้อนกลับไปยังหน้าแรก
@@ -900,7 +1062,7 @@ class YearGrid extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: 8.0, vertical: 10.0), // ลด padding รอบๆ
+          horizontal: 8.0, vertical: 12.0), // ลด padding รอบๆ
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
