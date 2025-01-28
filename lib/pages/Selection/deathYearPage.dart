@@ -20,8 +20,6 @@ class _DeathYearPageState extends State<DeathYearPage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
-
     // ปีพุทธศักราชปัจจุบัน
     final currentYear = DateTime.now().year + 543;
 
@@ -29,7 +27,7 @@ class _DeathYearPageState extends State<DeathYearPage> {
     final birthYear = widget.birthYear;
 
     // สร้างรายการปีและคำนวณอายุในปีนั้น
-    final years = List.generate(70, (index) {
+    final years = List.generate(110, (index) {
       final year = currentYear + index; // เพิ่มปีจากปีปัจจุบัน
       final ageInThatYear = year - birthYear; // คำนวณอายุในปีนั้น
       return {'year': year, 'ageInThatYear': ageInThatYear};

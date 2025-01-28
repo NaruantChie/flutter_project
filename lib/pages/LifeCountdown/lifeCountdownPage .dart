@@ -12,6 +12,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 import 'package:go_router/go_router.dart';
 import 'package:life_countdown/pages/AboutUs/AboutUsPage%20.dart';
+import 'package:life_countdown/pages/Support/supportPage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart'; // เพิ่มการ import
 
@@ -809,7 +810,7 @@ class _LifeCountdownPageState extends State<LifeCountdownPage>
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                const AboutUsPage(), // หน้าที่จะเปิดใหม่
+                                const SupportPage(), // หน้าที่จะเปิดใหม่
                           ),
                         );
                       },

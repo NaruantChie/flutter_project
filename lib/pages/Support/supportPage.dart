@@ -1,5 +1,6 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SupportPage extends StatefulWidget {
   const SupportPage({Key? key}) : super(key: key);
@@ -12,6 +13,11 @@ class _SupportPageState extends State<SupportPage> {
   final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
   bool isLoading = true;
   String remoteMessage = "Loading...";
+  String remoteMessage2 = "Loading...";
+  String imageUrl = ""; // ค่า URL ที่จะใช้แสดงรูป
+  String remoteMessage3 = "Loading...";
+  String number_bank = "Loading...";
+  String name_Account = "Loading...";
 
   @override
   void initState() {
@@ -25,10 +31,7 @@ class _SupportPageState extends State<SupportPage> {
     });
 
     try {
-      // ตั้งค่าค่าเริ่มต้น
-      await _remoteConfig.setDefaults({"name": "word"});
-
-      // ตั้งค่าการ fetch
+      // ตั้งค่า fetch
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 10),
         minimumFetchInterval: const Duration(seconds: 10),
@@ -38,12 +41,19 @@ class _SupportPageState extends State<SupportPage> {
       await _remoteConfig.fetchAndActivate();
 
       setState(() {
-        remoteMessage = _remoteConfig.getString("name");
+        remoteMessage = _remoteConfig.getString("name"); // โหลดค่า name
+        remoteMessage2 = _remoteConfig.getString("name_2"); // โหลดค่า name_2
+        imageUrl = _remoteConfig.getString("image_1"); // ดึงค่า URL
+        remoteMessage3 = _remoteConfig.getString("name_bank"); // โหลดค่า name_2
+        number_bank = _remoteConfig.getString("number_bank"); // โหลดค่า name_2
+        name_Account =
+            _remoteConfig.getString("name_Account"); // โหลดค่า name_2
       });
     } catch (e) {
       print("Error fetching remote config: $e");
       setState(() {
         remoteMessage = "Error fetching data.";
+        remoteMessage2 = "Error fetching data.";
       });
     } finally {
       setState(() {
@@ -58,9 +68,24 @@ class _SupportPageState extends State<SupportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Welcome to Life Countdown'),
-        centerTitle: true,
-        backgroundColor: isDarkMode ? Colors.black : Colors.blue,
+        backgroundColor: isDarkMode
+            ? Colors.grey[900]
+            : const Color.fromARGB(255, 255, 255, 255),
+        title: Text(
+          AppLocalizations.of(context)!.back,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+          onPressed: () {
+            Navigator.pop(context); // ย้อนกลับไปยังหน้าก่อนหน้าใน stack
+          },
+        ),
       ),
       body: isLoading
           ? const Center(
@@ -68,101 +93,102 @@ class _SupportPageState extends State<SupportPage> {
             )
           : SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Text(
-                        "Welcome to Life Countdown",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : Colors.black,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Text(
-                        remoteMessage,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
-                          color:
-                              isDarkMode ? Colors.grey[300] : Colors.grey[800],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
                     const SizedBox(height: 40),
                     const Divider(),
                     const SizedBox(height: 20),
-                    const Text(
-                      "About Us",
+                    Text(
+                      AppLocalizations.of(context)!.supportButton,
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 40,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "สนับสนุน Peaceful Death\n"
-                      "ท่านสามารถร่วมสมทบทุนการจัดทำสื่อและกิจกรรมการเรียนรู้ เรื่องการอยู่และตายดีของ Peaceful Death ได้โดยการโอนเงินตามข้อมูลด้านล่าง",
-                      style: TextStyle(
-                        fontSize: 16,
-                        height: 1.5,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 3.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          remoteMessage2, // แสดงค่า name_2 จาก Remote Config
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: isDarkMode
+                                ? Colors.grey[300]
+                                : const Color.fromARGB(255, 0, 0, 0),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          left: 3.0, right: 0.0, top: 0.0, bottom: 0.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          remoteMessage,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: isDarkMode
+                                ? Colors.grey[300]
+                                : const Color.fromARGB(255, 0, 0, 0),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
                     Row(
                       children: [
-                        Image.asset(
-                          'assets/images/logo.png',
+                        Image.network(
+                          imageUrl, // โหลดรูปจาก URL ที่ได้จาก Firebase Remote Config
                           width: 24,
                           height: 24,
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          "ธนาคารกสิกรไทย สาขา บางขุน",
+                        Text(
+                          remoteMessage3,
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "เลขที่บัญชี 156-8-02777-5",
+                    Text(
+                      number_bank,
                       style: TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "ชื่อบัญชี น.ส.วรรณา จารุสมบูรณ์ และ น.ส.ฐณิตา อภินะกุลชัย และ น.ส.ปิญชิตา ผ่องพุฒคุณ",
+                    Text(
+                      name_Account,
                       style: TextStyle(fontSize: 16, height: 1.5),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 200),
                     Center(
                       child: ElevatedButton(
                         onPressed: () {
                           // Action สำหรับปุ่มเริ่มต้น
-                          Navigator.pushNamed(context, '/select_Date');
+                          Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isDarkMode ? Colors.blueGrey : Colors.blue,
+                          backgroundColor: isDarkMode
+                              ? Colors.blueGrey
+                              : const Color.fromARGB(255, 1, 1, 1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 50,
+                            horizontal: 150,
                             vertical: 15,
                           ),
                         ),
-                        child: const Text(
-                          "Start Countdown",
-                          style: TextStyle(
+                        child: Text(
+                          AppLocalizations.of(context)!.agree,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,

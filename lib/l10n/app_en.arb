@@ -113,7 +113,13 @@
   "secondLabel": "second",
   "saveImageButtonLabel": "Save Image",
   "closeButtonLabel": "Close",
-  "shareTitle": "Share"
+  "shareTitle": "Share",
+
+  "@created_by": {"comment": "คำหน้า AboutUsPage "},
+    "created_by": "Created by",
+      "sponsored_by": "Sponsored by"
+
+
 
 
 

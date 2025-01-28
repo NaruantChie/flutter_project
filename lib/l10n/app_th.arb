@@ -116,7 +116,12 @@
   "secondLabel": "วินาที",
   "closeButtonLabel": "ปิด",
   "saveImageButtonLabel": "บันทึกรูป",
-  "shareTitle": "แชร์"
+  "shareTitle": "แชร์",
+
+  
+  "@created_by": {"comment": "คำหน้า AboutUsPage "},
+  "created_by": "จัดทำโดย",
+    "sponsored_by": "สนับสนุนโดย"
 
 
 

@@ -23,7 +23,7 @@ dependencies:
   screenshot: ^2.1.0
   firebase_core: ^3.10.1
   firebase_remote_config: ^5.3.1
-
+  firebase_storage: ^12.4.1
   # Routing
   go_router: ^7.0.0
 
