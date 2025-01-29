@@ -14,7 +14,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
   bool isLoading = true;
   String name_title_aboutUs = "Loading...";
   String text_aboutUs = "Loading...";
-  String imageUrl = ""; // ค่า URL ที่จะใช้แสดงรูป
+  String image_2 = ""; // ค่า URL ที่จะใช้แสดงรูป
   String text_by = "Loading...";
   String text_support = "Loading...";
 
@@ -30,7 +30,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
     });
 
     try {
-      // ตั้งค่า fetch
+      // ตั้งค่า Remote Config
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 10),
         minimumFetchInterval: const Duration(seconds: 10),
@@ -39,10 +39,11 @@ class _AboutUsPageState extends State<AboutUsPage> {
       // ดึงค่าจาก Remote Config
       await _remoteConfig.fetchAndActivate();
 
+      // อัปเดตค่าจาก Remote Config
       setState(() {
         name_title_aboutUs = _remoteConfig.getString("name_title_aboutUs");
         text_aboutUs = _remoteConfig.getString("text_aboutUs");
-        imageUrl = _remoteConfig.getString("image_1");
+        image_2 = _remoteConfig.getString("image_2");
         text_by = _remoteConfig.getString("text_by");
         text_support = _remoteConfig.getString("text_support");
       });
@@ -51,6 +52,8 @@ class _AboutUsPageState extends State<AboutUsPage> {
       setState(() {
         name_title_aboutUs = "Error fetching data.";
         text_aboutUs = "Error fetching data.";
+        text_by = "Error fetching data.";
+        text_support = "Error fetching data.";
       });
     } finally {
       setState(() {
@@ -86,7 +89,8 @@ class _AboutUsPageState extends State<AboutUsPage> {
       ),
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator()) // แสดง Loading ระหว่างโหลดค่า
+              child: CircularProgressIndicator(), // แสดง Loading Indicator
+            )
           : Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
@@ -102,16 +106,28 @@ class _AboutUsPageState extends State<AboutUsPage> {
                   ),
                   const SizedBox(height: 16),
                   Center(
-                    child: imageUrl.isNotEmpty
-                        ? Image.network(imageUrl,
+                    child: image_2.isNotEmpty
+                        ? Image.network(
+                            image_2,
                             height: 150,
-                            width: 150) // ใช้รูปจาก Firebase Remote Config
-                        : Image.asset('assets/images/logo.png',
-                            height: 100, width: 100), // ใช้รูปโลโก้เริ่มต้น
+                            width: 150,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/logo.png',
+                                height: 100,
+                                width: 100,
+                              );
+                            },
+                          )
+                        : Image.asset(
+                            'assets/images/logo.png',
+                            height: 100,
+                            width: 100,
+                          ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    name_title_aboutUs, // โหลดค่าชื่อจาก Firebase Remote Config
+                    name_title_aboutUs,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -189,7 +205,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : Colors.white,
+                          color: Colors.white,
                         ),
                       ),
                     ),

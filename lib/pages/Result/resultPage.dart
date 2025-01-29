@@ -66,6 +66,76 @@ class _ResultPageState extends State<ResultPage> {
     );
   }
 
+  String convertTo24HourFormat(String time, BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    final isThai = Localizations.localeOf(context).languageCode == 'th';
+
+    // แมพเวลาภาษาไทยและภาษาอังกฤษเป็นรูปแบบ 24 ชั่วโมง
+    final timeMapping = {
+      "เที่ยงคืน": "00:00",
+      "Midnight": "00:00",
+      "ตี 1": "01:00",
+      "ตี 2": "02:00",
+      "ตี 3": "03:00",
+      "ตี 4": "04:00",
+      "ตี 5": "05:00",
+      "6 โมงเช้า": "06:00",
+      "7 โมงเช้า": "07:00",
+      "8 โมงเช้า": "08:00",
+      "9 โมงเช้า": "09:00",
+      "10 โมงเช้า": "10:00",
+      "11 โมงเช้า": "11:00",
+      "เที่ยงวัน": "12:00",
+      "Noon": "12:00",
+      "บ่าย 1": "13:00",
+      "บ่าย 2": "14:00",
+      "บ่าย 3": "15:00",
+      "บ่าย 4": "16:00",
+      "5 โมงเย็น": "17:00",
+      "6 โมงเย็น": "18:00",
+      "1 ทุ่ม": "19:00",
+      "2 ทุ่ม": "20:00",
+      "3 ทุ่ม": "21:00",
+      "4 ทุ่ม": "22:00",
+      "5 ทุ่ม": "23:00",
+    };
+
+    // ตรวจสอบและแปลงเวลาไทยหรือภาษาอังกฤษเป็น 24 ชั่วโมง
+    String convertedTime = timeMapping[time] ?? time;
+
+    // รองรับรูปแบบ 12 ชั่วโมงเช่น "3 AM" หรือ "3 PM"
+    final match =
+        RegExp(r'(\d{1,2})\s*(AM|PM)', caseSensitive: false).firstMatch(time);
+    if (match != null) {
+      int hour = int.parse(match.group(1)!);
+      bool isPM = match.group(2)!.toUpperCase() == "PM";
+
+      if (isPM && hour < 12) {
+        hour += 12; // PM ต้องบวก 12
+      } else if (!isPM && hour == 12) {
+        hour = 0; // 12 AM คือ 00:00
+      }
+
+      convertedTime = '${hour.toString().padLeft(2, '0')}:00';
+    }
+
+    if (!isThai) {
+      // แปลงเป็น AM/PM format
+      final parts = convertedTime.split(':');
+      if (parts.length == 2) {
+        int hour = int.parse(parts[0]);
+        String period = hour < 12 ? 'AM' : 'PM';
+        if (hour > 12) hour -= 12;
+        if (hour == 0) hour = 12;
+        convertedTime = '${hour.toString().padLeft(2, '0')}.00 $period';
+      }
+    } else {
+      convertedTime += ' น.';
+    }
+
+    return convertedTime;
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!; // ดึงข้อมูลที่แปลภาษา
@@ -84,17 +154,6 @@ class _ResultPageState extends State<ResultPage> {
         localizations.october: 10,
         localizations.november: 11,
         localizations.december: 12,
-      };
-
-      final timeMapping = {
-        "เที่ยงคืน": 0,
-        "ตี 3": 3,
-        "6 โมงเช้า": 6,
-        "9 โมงเช้า": 9,
-        "เที่ยงวัน": 12,
-        "บ่าย 3": 15,
-        "6 โมงเย็น": 18,
-        "3 ทุ่ม": 21,
       };
 
       if (widget.fromSelectDate != null && widget.fromSelectionPage != null) {
@@ -125,12 +184,9 @@ class _ResultPageState extends State<ResultPage> {
         int deathHour = 0;
         int deathMinute = 0;
 
-        if (selectedTime != null && timeMapping.containsKey(selectedTime)) {
-          // เวลาแบบปกติ เช่น "ตี 3"
-          deathHour = timeMapping[selectedTime]!;
-        } else if (selectedTime != null && selectedTime.contains(':')) {
-          // เวลาแบบกำหนดเอง เช่น "HH:MM"
-          final parts = selectedTime.split(':');
+        if (selectedTime != null) {
+          final convertedTime = convertTo24HourFormat(selectedTime, context);
+          final parts = convertedTime.split(':');
           if (parts.length == 2) {
             deathHour = int.tryParse(parts[0]) ?? 0;
             deathMinute = int.tryParse(parts[1]) ?? 0;
@@ -204,7 +260,7 @@ class _ResultPageState extends State<ResultPage> {
                         children: [
                           Text(
                             AppLocalizations.of(context)!.deathDateTimeMessage,
-                            style: TextStyle(fontSize: 16.0, color: textColor),
+                            style: TextStyle(fontSize: 15.0, color: textColor),
                           ),
                         ],
                       ),
@@ -216,7 +272,7 @@ class _ResultPageState extends State<ResultPage> {
                           '${widget.fromSelectionPage?['selectedDay'] ?? 'ไม่ระบุ'}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
+                            fontSize: 16.0,
                             color: textColor,
                           ),
                         ),
@@ -225,7 +281,7 @@ class _ResultPageState extends State<ResultPage> {
                           '${widget.fromSelectionPage?['selectedMonth'] ?? 'ไม่ระบุ'}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
+                            fontSize: 16.0,
                             color: textColor,
                           ),
                         ),
@@ -234,7 +290,7 @@ class _ResultPageState extends State<ResultPage> {
                           AppLocalizations.of(context)!.yearLabel_lv1,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
+                            fontSize: 16.0,
                             color: textColor,
                           ),
                         ),
@@ -242,7 +298,7 @@ class _ResultPageState extends State<ResultPage> {
                           '${widget.fromSelectionPage?['selectedYear'] ?? 'ไม่ระบุ'}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
+                            fontSize: 16.0,
                             color: textColor,
                           ),
                         ),
@@ -252,16 +308,19 @@ class _ResultPageState extends State<ResultPage> {
                               .timeLabel, // ดึงข้อความที่แปลจาก localization
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
+                            fontSize: 16.0,
                             color: textColor,
                           ),
                         ),
                         const SizedBox(width: 5.0),
                         Text(
-                          '${widget.fromSelectionPage?['selectedTime'] ?? 'ไม่ระบุ'}',
+                          convertTo24HourFormat(
+                              widget.fromSelectionPage?['selectedTime'] ??
+                                  'ไม่ระบุ',
+                              context),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
+                            fontSize: 16.0,
                             color: textColor,
                           ),
                         ),

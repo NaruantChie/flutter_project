@@ -367,11 +367,11 @@ class _LifeCountdownPageState extends State<LifeCountdownPage>
               color: Colors.orange,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             formatDuration(_timeRemaining),
             style: const TextStyle(
-              fontSize: 20,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -441,7 +441,7 @@ class _LifeCountdownPageState extends State<LifeCountdownPage>
               child: RepaintBoundary(
             key: _captureKey, // ใช้ GlobalKey สำหรับการจับภาพ
             child: Padding(
-              padding: const EdgeInsets.all(5.0), // เพิ่ม Padding รอบ PageView
+              padding: const EdgeInsets.all(7.0), // เพิ่ม Padding รอบ PageView
               child: Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark
@@ -471,231 +471,287 @@ class _LifeCountdownPageState extends State<LifeCountdownPage>
                       },
                       children: [
                         // หน้าแรก
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            if (_showCaptureText) ...[
-                              // แสดงข้อความเฉพาะตอนจับภาพ
-                              const SizedBox(height: 25),
-                              Text(
-                                AppLocalizations.of(context)!
-                                    .timeRemainingTitle,
-                                style: const TextStyle(
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                formatDuration(_timeRemaining),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 60),
-                            SizedBox(
-                              height: 260,
-                              width: 350,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Positioned(
-                                    width: 250,
-                                    height: 250,
-                                    child: CustomPaint(
-                                      painter: HalfCircleProgressPainter(
-                                        percentage: percentagePassed,
-                                        context: context,
-                                      ),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            double width = constraints.maxWidth;
+                            double height = constraints.maxHeight;
+
+                            double circleSize = width *
+                                0.6; // ปรับขนาดวงกลมให้สัมพันธ์กับหน้าจอ
+                            double iconSize = width *
+                                0.1; // ปรับขนาดไอคอนให้สัมพันธ์กับหน้าจอ
+                            double fontSize = width * 0.05; // ปรับขนาดตัวอักษร
+                            double percentageFontSize = width * 0.08;
+
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                if (_showCaptureText) ...[
+                                  SizedBox(height: height * 0.05),
+                                  Text(
+                                    AppLocalizations.of(context)!
+                                        .timeRemainingTitle,
+                                    style: TextStyle(
+                                      fontSize: fontSize,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.orange,
                                     ),
                                   ),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  SizedBox(height: height * 0.01),
+                                  Text(
+                                    formatDuration(_timeRemaining),
+                                    style: TextStyle(
+                                      fontSize: fontSize * 0.8,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                                SizedBox(height: height * 0.18),
+                                SizedBox(
+                                  height: circleSize,
+                                  width: circleSize * 1.4,
+                                  child: Stack(
+                                    alignment: Alignment.center,
                                     children: [
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        AppLocalizations.of(context)!
-                                            .timeElapsedTitle,
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
+                                      Positioned(
+                                        width: circleSize,
+                                        height: circleSize,
+                                        child: CustomPaint(
+                                          painter: HalfCircleProgressPainter(
+                                            percentage: percentagePassed,
+                                            context: context,
+                                          ),
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        "${percentagePassed.toStringAsFixed(1)}%",
-                                        style: const TextStyle(
-                                          fontSize: 40,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.orange,
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(height: height * 0.02),
+                                          Text(
+                                            AppLocalizations.of(context)!
+                                                .timeElapsedTitle,
+                                            style: TextStyle(
+                                              fontSize: fontSize * 0.8,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          SizedBox(height: height * 0.01),
+                                          Text(
+                                            "${percentagePassed.toStringAsFixed(1)}%",
+                                            style: TextStyle(
+                                              fontSize: percentageFontSize,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.orange,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        left: width * 0.04,
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              width: iconSize * 1.6,
+                                              height: iconSize * 1.4,
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange
+                                                    .withOpacity(0.3),
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                        bottom: Radius.circular(
+                                                            32)),
+                                              ),
+                                              child: Icon(FontAwesomeIcons.baby,
+                                                  size: iconSize),
+                                            ),
+                                            SizedBox(height: height * 0.005),
+                                            Text(
+                                              AppLocalizations.of(context)!
+                                                  .birthTitle,
+                                              style: TextStyle(
+                                                  fontSize: fontSize * 0.7),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: width * 0.04,
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              width: iconSize * 1.6,
+                                              height: iconSize * 1.4,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey
+                                                    .withOpacity(0.3),
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                        bottom: Radius.circular(
+                                                            32)),
+                                              ),
+                                              child: Stack(
+                                                alignment: Alignment.center,
+                                                children: [
+                                                  Container(
+                                                    width: iconSize,
+                                                    height: iconSize,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.transparent,
+                                                      border: Border.all(
+                                                        color: Colors.grey,
+                                                        width: 2,
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                  ),
+                                                  Icon(Icons.person,
+                                                      size: iconSize),
+                                                ],
+                                              ),
+                                            ),
+                                            SizedBox(height: height * 0.005),
+                                            Text(
+                                              AppLocalizations.of(context)!
+                                                  .deathTitle,
+                                              style: TextStyle(
+                                                  fontSize: fontSize * 0.7),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                  Positioned(
-                                    bottom: 0,
-                                    left: 19,
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          width: 64,
-                                          height: 64,
-                                          decoration: BoxDecoration(
-                                            color:
-                                                Colors.orange.withOpacity(0.3),
-                                            borderRadius: BorderRadius.vertical(
-                                              bottom: Radius.circular(32),
-                                            ),
-                                          ),
-                                          child: Icon(FontAwesomeIcons.baby,
-                                              size: 32),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          AppLocalizations.of(context)!
-                                              .birthTitle,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 19,
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          width: 64,
-                                          height: 64,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.withOpacity(0.3),
-                                            borderRadius: BorderRadius.vertical(
-                                              bottom: Radius.circular(32),
-                                            ),
-                                          ),
-                                          child: Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              Container(
-                                                width: 38,
-                                                height: 38,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.transparent,
-                                                  border: Border.all(
-                                                    color: Colors.grey,
-                                                    width: 2,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                              ),
-                                              Icon(
-                                                Icons.person,
-                                                size: 32,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          AppLocalizations.of(context)!
-                                              .deathTitle,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                                ),
+                              ],
+                            );
+                          },
                         ),
 
                         // หน้าอื่นๆ
                         Scaffold(
-                          body: Center(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12.0),
-                              child: Container(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    if (_showCaptureText) ...[
-                                      // แสดงข้อความเฉพาะตอนจับภาพ
-                                      Text(
-                                        AppLocalizations.of(context)!
-                                            .timeRemainingTitle,
-                                        style: const TextStyle(
-                                          fontSize: 25,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.orange,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        formatDuration(_timeRemaining),
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                    const SizedBox(height: 10),
-                                    YearGrid(
-                                      startYear: widget.birthDate.year,
-                                      endYear: widget.deathDate.year,
-                                      currentYear: DateTime.now().year,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                          body: LayoutBuilder(
+                            builder: (context, constraints) {
+                              double width = constraints.maxWidth;
+                              double height = constraints.maxHeight;
 
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (_showCaptureText) ...[
-                              // แสดงข้อความเฉพาะตอนจับภาพ
-                              const SizedBox(height: 8),
-                              Text(
-                                AppLocalizations.of(context)!
-                                    .timeRemainingTitle,
-                                style: const TextStyle(
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                formatDuration(_timeRemaining),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color.fromRGBO(15, 37, 66, 1),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                child: Center(
-                                  child: CandleWidget(
-                                    remainingPercentage:
-                                        (_timeRemaining.inSeconds /
-                                                _totalLifeSpan.inSeconds) *
-                                            100,
+                              double fontSizeTitle =
+                                  width * 0.06; // ปรับขนาดตัวอักษรตามจอ
+                              double fontSizeDuration =
+                                  fontSizeTitle * 0.6; // ขนาดตัวอักษรของเวลา
+
+                              return Center(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  child: Container(
+                                    padding: EdgeInsets.all(
+                                        width * 0.08), // ปรับ padding ตามหน้าจอ
+                                    width: width * 1, // ป้องกันการขยายเกินขอบจอ
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        if (_showCaptureText) ...[
+                                          Text(
+                                            AppLocalizations.of(context)!
+                                                .timeRemainingTitle,
+                                            style: TextStyle(
+                                              fontSize: fontSizeTitle,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.orange,
+                                            ),
+                                            textAlign: TextAlign
+                                                .center, // ป้องกันข้อความล้น
+                                          ),
+                                          SizedBox(height: height * 0.01),
+                                          Text(
+                                            formatDuration(_timeRemaining),
+                                            style: TextStyle(
+                                              fontSize: fontSizeDuration,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                        SizedBox(height: height * 0.02),
+                                        Expanded(
+                                          child: SingleChildScrollView(
+                                            child: YearGrid(
+                                              startYear: widget.birthDate.year,
+                                              endYear: widget.deathDate.year,
+                                              currentYear: DateTime.now().year,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          ],
+                              );
+                            },
+                          ),
+                        ),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            double width = constraints.maxWidth;
+                            double height = constraints.maxHeight;
+
+                            double fontSizeTitle =
+                                width * 0.06; // ขนาดตัวอักษรของหัวข้อ
+                            double fontSizeDuration =
+                                fontSizeTitle * 0.6; // ขนาดตัวอักษรของเวลา
+
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (_showCaptureText) ...[
+                                  SizedBox(height: height * 0.01),
+                                  Text(
+                                    AppLocalizations.of(context)!
+                                        .timeRemainingTitle,
+                                    style: TextStyle(
+                                      fontSize: fontSizeTitle,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.orange,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: height * 0.005),
+                                  Text(
+                                    formatDuration(_timeRemaining),
+                                    style: TextStyle(
+                                      fontSize: fontSizeDuration,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                                Expanded(
+                                  child: Container(
+                                    width:
+                                        width * 1, // ปรับให้เหมาะกับขนาดหน้าจอ
+                                    decoration: BoxDecoration(
+                                      color:
+                                          const Color.fromRGBO(15, 37, 66, 1),
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                    child: Center(
+                                      child: CandleWidget(
+                                        remainingPercentage:
+                                            (_timeRemaining.inSeconds /
+                                                    _totalLifeSpan.inSeconds) *
+                                                100,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -706,8 +762,8 @@ class _LifeCountdownPageState extends State<LifeCountdownPage>
           )),
           Padding(
             padding: const EdgeInsets.only(
-              top: 0.0,
-              bottom: 10.0,
+              top: 20.0,
+              bottom: 80.0,
               left: 40.0,
               right: 50.0,
             ),
@@ -744,86 +800,6 @@ class _LifeCountdownPageState extends State<LifeCountdownPage>
               ],
             ),
           ),
-          Padding(
-            padding:
-                const EdgeInsets.only(bottom: 16.0), // เพิ่ม Padding ด้านล่าง
-            child: Align(
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.center, // จัดปุ่มให้อยู่ตรงกลางในแนวนอน
-                children: [
-                  SizedBox(
-                    width: 150, // ความกว้างของปุ่ม
-                    height: 50, // ความสูงของปุ่ม
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.black // สีข้อความเมื่อโหมดมืด
-                                : Colors.white, // สีข้อความเมื่อโหมดสว่าง
-                        backgroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white // สีปุ่มเมื่อโหมดมืด
-                                : Colors.black, // สีปุ่มเมื่อโหมดสว่าง
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(12), // ความโค้งของขอบปุ่ม
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const AboutUsPage(), // หน้าที่จะเปิดใหม่
-                          ),
-                        ); // ใช้ Navigator.push
-                      },
-                      child: Text(
-                        AppLocalizations.of(context)!.aboutUsButton,
-                        style: const TextStyle(fontSize: 18), // ขนาดตัวอักษร
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16), // ระยะห่างระหว่างปุ่ม
-                  SizedBox(
-                    width: 150, // ความกว้างของปุ่ม
-                    height: 50, // ความสูงของปุ่ม
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.black
-                                : Colors.white,
-                        backgroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(12), // ความโค้งของขอบปุ่ม
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const SupportPage(), // หน้าที่จะเปิดใหม่
-                          ),
-                        );
-                      },
-                      child: Text(
-                        AppLocalizations.of(context)!.supportButton,
-                        style: const TextStyle(fontSize: 18), // ขนาดตัวอักษร
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
         ],
       ),
     );
@@ -1045,11 +1021,11 @@ class YearGrid extends StatelessWidget {
   final int currentYear; // ปีปัจจุบัน
 
   const YearGrid({
-    Key? key,
+    super.key,
     required this.startYear,
     required this.endYear,
     required this.currentYear,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1069,7 +1045,7 @@ class YearGrid extends StatelessWidget {
         children: [
           const SizedBox(height: 0), // ลดระยะห่างด้านบน
           SizedBox(
-            height: 340, // กำหนดความสูงที่แน่นอนให้กับ Scrollable area
+            height: 320, // กำหนดความสูงที่แน่นอนให้กับ Scrollable area
             child: SingleChildScrollView(
               child: Wrap(
                 spacing: 4, // ลดระยะห่างระหว่างคอลัมน์

@@ -124,8 +124,8 @@ class _SelectionPageState extends State<SelectionPage>
             : const Color.fromARGB(255, 166, 166, 166),
         'icon': Icons.calendar_today,
         'iconTop': 20.0, // ความสูงของไอคอนสำหรับแผ่นที่ 2
-        'maxChildSize': 0.8,
-        'initialChildSize': 0.8,
+        'maxChildSize': 0.9,
+        'initialChildSize': 0.9,
         'minChildSize': 0.3,
         'isDeathDayPage': true,
       },
@@ -136,8 +136,8 @@ class _SelectionPageState extends State<SelectionPage>
             : const Color.fromARGB(255, 166, 166, 166),
         'icon': Icons.event_note,
         'iconTop': 40.0, // ความสูงของไอคอนสำหรับแผ่นที่ 3
-        'maxChildSize': 0.7,
-        'initialChildSize': 0.7,
+        'maxChildSize': 0.9,
+        'initialChildSize': 0.9,
         'minChildSize': 0.3,
         'isDeathMonthPage': true,
       },
@@ -148,8 +148,8 @@ class _SelectionPageState extends State<SelectionPage>
             : const Color.fromARGB(255, 166, 166, 166),
         'icon': Icons.star,
         'iconTop': 50.0, // ความสูงของไอคอนสำหรับแผ่นที่ 4
-        'maxChildSize': 0.6,
-        'initialChildSize': 0.6,
+        'maxChildSize': 0.9,
+        'initialChildSize': 0.9,
         'minChildSize': 0.3,
         'isDeathYearPage': true,
       },

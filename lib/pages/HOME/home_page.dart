@@ -9,6 +9,7 @@ import 'package:life_countdown/pages/PROVIDERS/locale_provider.dart';
 import 'package:life_countdown/pages/PROVIDERS/theme_provider.dart';
 import 'package:life_countdown/pages/Support/supportPage.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -40,6 +41,13 @@ class _HomePageState extends State<HomePage>
         _animationController.forward();
       }
     });
+  }
+
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw Exception('ไม่สามารถเปิดลิงก์: $url');
+    }
   }
 
   Future<void> _loadImage() async {
@@ -211,50 +219,14 @@ class _HomePageState extends State<HomePage>
             ),
 
             const SizedBox(height: 20), // ระยะห่างระหว่างปุ่ม
-
             Align(
               alignment: Alignment.center,
               child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.center, // จัดปุ่มให้อยู่ตรงกลางในแนวนอน
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 150, // ความกว้างของปุ่ม
-                    height: 50, // ความสูงของปุ่ม
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.black // สีข้อความเมื่อโหมดมืด
-                                : Colors.white, // สีข้อความเมื่อโหมดสว่าง
-                        backgroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white // สีปุ่มเมื่อโหมดมืด
-                                : Colors.black, // สีปุ่มเมื่อโหมดสว่าง
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(12), // ความโค้งของขอบปุ่ม
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const AboutUsPage(), // หน้าที่จะเปิดใหม่
-                          ),
-                        ); // ใช้ Navigator.push
-                      },
-                      child: Text(
-                        AppLocalizations.of(context)!.aboutUsButton,
-                        style: const TextStyle(fontSize: 18), // ขนาดตัวอักษร
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16), // ระยะห่างระหว่างปุ่ม
-                  SizedBox(
-                    width: 150, // ความกว้างของปุ่ม
-                    height: 50, // ความสูงของปุ่ม
+                    width: 150,
+                    height: 50,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         foregroundColor:
@@ -266,25 +238,45 @@ class _HomePageState extends State<HomePage>
                                 ? Colors.white
                                 : Colors.black,
                         shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(12), // ความโค้งของขอบปุ่ม
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                SupportPage(), // หน้าที่จะเปิดใหม่
-                          ),
-                        ); // ใช้ Navigator.push
+                        _launchURL('https://www.google.com');
+                      },
+                      child: Text(
+                        AppLocalizations.of(context)!.aboutUsButton,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  SizedBox(
+                    width: 150,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.black
+                                : Colors.white,
+                        backgroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        _launchURL('https://www.sanook.com');
                       },
                       child: Text(
                         AppLocalizations.of(context)!.supportButton,
-                        style: const TextStyle(fontSize: 18), // ขนาดตัวอักษร
+                        style: const TextStyle(fontSize: 18),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

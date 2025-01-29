@@ -18,10 +18,16 @@ import 'package:life_countdown/pages/Selection/deathYearPage.dart';
 import 'package:life_countdown/pages/Selection/selection.dart';
 import 'package:life_countdown/pages/Support/supportPage.dart';
 import 'package:provider/provider.dart';
+import 'firebase_options.dart';
 
+// 🟢 **แก้ไข**: โหลด Firebase ก่อนเริ่มแอป
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // เริ่มต้น Firebase
+  WidgetsFlutterBinding.ensureInitialized(); // สำคัญสำหรับ async operation
+  await Firebase.initializeApp(
+    options:
+        DefaultFirebaseOptions.currentPlatform, // 🟢 ใช้ firebase_options.dart
+  );
+
   runApp(
     MultiProvider(
       providers: [

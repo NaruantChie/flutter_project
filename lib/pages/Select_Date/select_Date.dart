@@ -84,190 +84,265 @@ class _SelectDatePageState extends State<SelectDatePage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.black, // เปลี่ยนสีไอคอนเป็นสีขาว
+          ),
           onPressed: () {
             context.go('/');
           },
         ),
-        toolbarHeight: 80,
-        flexibleSpace: Stack(
-          children: [
-            Align(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 15),
-                  Text(
-                    localizations.selectDateHeader,
-                    style: const TextStyle(
-                      fontSize: 45,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    localizations.selectDateSubHeader,
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                  ),
-                ],
+        toolbarHeight: 150,
+        flexibleSpace: Container(
+          decoration: ShapeDecoration(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30), // มุมโค้งซ้ายล่าง
+                bottomRight: Radius.circular(30), // มุมโค้งขวาล่าง
               ),
             ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(250),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField2<String>(
-                    decoration: InputDecoration(
-                      labelText: localizations.yearLabel,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 5,
-                        horizontal: 8,
-                      ),
-                    ),
-                    value: selectedYear,
-                    isExpanded: true,
-                    items: years.map((year) {
-                      return DropdownMenuItem<String>(
-                        value: year,
-                        child: Text(
-                          year,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedYear = value;
-                      });
-                      updateDays();
-                    },
-                    buttonStyleData: const ButtonStyleData(
-                      padding: EdgeInsets.symmetric(horizontal: 0),
-                      height: 45,
-                    ),
-                    dropdownStyleData: DropdownStyleData(
-                      maxHeight: 200,
-                      offset: const Offset(0, -6),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                    menuItemStyleData: const MenuItemStyleData(
-                      height: 36,
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: DropdownButtonFormField2<String>(
-                    decoration: InputDecoration(
-                      labelText: localizations.monthLabel,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 5,
-                        horizontal: 4,
-                      ),
-                    ),
-                    value: selectedMonth,
-                    isExpanded: true,
-                    items: getLocalizedMonths(context).map((month) {
-                      return DropdownMenuItem<String>(
-                        value: month,
-                        child: Text(
-                          month,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedMonth = value;
-                      });
-                      updateDays();
-                    },
-                    buttonStyleData: const ButtonStyleData(
-                      padding: EdgeInsets.symmetric(horizontal: 0),
-                      height: 45,
-                    ),
-                    dropdownStyleData: DropdownStyleData(
-                      maxHeight: 200,
-                      offset: const Offset(0, -5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                    menuItemStyleData: const MenuItemStyleData(
-                      height: 36,
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: DropdownButtonFormField2<String>(
-                    decoration: InputDecoration(
-                      labelText: localizations.dayLabel,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 5,
-                        horizontal: 8,
-                      ),
-                    ),
-                    value: selectedDay,
-                    isExpanded: true,
-                    items: days.map((day) {
-                      return DropdownMenuItem<String>(
-                        value: day,
-                        child: Text(
-                          day,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedDay = value;
-                      });
-                    },
-                    buttonStyleData: const ButtonStyleData(
-                      padding: EdgeInsets.symmetric(horizontal: 0),
-                      height: 45,
-                    ),
-                    dropdownStyleData: DropdownStyleData(
-                      maxHeight: 200,
-                      offset: const Offset(0, -6),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                    menuItemStyleData: const MenuItemStyleData(
-                      height: 36,
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                    ),
-                  ),
-                ),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white, // สีดำ
+                Colors.black, // สีขาว
               ],
             ),
+          ),
+          child: Stack(
+            children: [
+              Align(
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 15),
+                    Text(
+                      localizations.selectDateHeader,
+                      style: const TextStyle(
+                        fontSize: 45,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      localizations.selectDateSubHeader,
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(280), // เพิ่มความสูงของ bottom
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Row(
+                  children: [
+                    // Dropdown ปี
+                    Expanded(
+                      child: DropdownButtonFormField2<String>(
+                        decoration: InputDecoration(
+                          labelText: localizations.yearLabel,
+                          labelStyle: const TextStyle(color: Colors.white),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide:
+                                const BorderSide(color: Colors.white, width: 2),
+                          ),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 5,
+                            horizontal: 8,
+                          ),
+                        ),
+                        value: selectedYear,
+                        isExpanded: true,
+                        items: years.map((year) {
+                          return DropdownMenuItem<String>(
+                            value: year,
+                            child: Text(
+                              year,
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white), // ใช้ style ตรงนี้
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedYear = value;
+                          });
+                          updateDays();
+                        },
+                        buttonStyleData: const ButtonStyleData(
+                          padding: EdgeInsets.symmetric(horizontal: 0),
+                          height: 45,
+                        ),
+                        dropdownStyleData: DropdownStyleData(
+                          maxHeight: 200,
+                          offset: const Offset(0, -6),
+                          decoration: BoxDecoration(
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        menuItemStyleData: const MenuItemStyleData(
+                          height: 36,
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // Dropdown เดือน
+                    Expanded(
+                      child: DropdownButtonFormField2<String>(
+                        decoration: InputDecoration(
+                          labelText: localizations.monthLabel,
+                          labelStyle: const TextStyle(color: Colors.white),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide:
+                                const BorderSide(color: Colors.white, width: 2),
+                          ),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 5,
+                            horizontal: 5,
+                          ),
+                        ),
+                        value: selectedMonth,
+                        isExpanded: true,
+                        items: getLocalizedMonths(context).map((month) {
+                          return DropdownMenuItem<String>(
+                            value: month,
+                            child: Text(
+                              month,
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white), // ใช้ style ตรงนี้
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedMonth = value;
+                          });
+                          updateDays();
+                        },
+                        buttonStyleData: const ButtonStyleData(
+                          padding: EdgeInsets.symmetric(horizontal: 0),
+                          height: 45,
+                        ),
+                        dropdownStyleData: DropdownStyleData(
+                          maxHeight: 200,
+                          offset: const Offset(0, -6),
+                          decoration: BoxDecoration(
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        menuItemStyleData: const MenuItemStyleData(
+                          height: 36,
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Dropdown วัน
+                    Expanded(
+                      child: DropdownButtonFormField2<String>(
+                        decoration: InputDecoration(
+                          labelText: localizations.dayLabel,
+                          labelStyle: const TextStyle(color: Colors.white),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide:
+                                const BorderSide(color: Colors.white, width: 2),
+                          ),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 5,
+                            horizontal: 8,
+                          ),
+                        ),
+                        value: selectedDay,
+                        isExpanded: true,
+                        items: days.map((day) {
+                          return DropdownMenuItem<String>(
+                            value: day,
+                            child: Text(
+                              day,
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white), // ใช้ style ตรงนี้
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedDay = value;
+                          });
+                        },
+                        buttonStyleData: const ButtonStyleData(
+                          padding: EdgeInsets.symmetric(horizontal: 0),
+                          height: 45,
+                        ),
+                        dropdownStyleData: DropdownStyleData(
+                          maxHeight: 200,
+                          offset: const Offset(0, -6),
+                          decoration: BoxDecoration(
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        menuItemStyleData: const MenuItemStyleData(
+                          height: 36,
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 50), // เพิ่ม Padding ด้านล่างของ AppBar
+            ],
           ),
         ),
       ),
@@ -275,73 +350,49 @@ class _SelectDatePageState extends State<SelectDatePage> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            AnimatedOpacity(
-              opacity: (selectedYear != null &&
-                      selectedMonth != null &&
-                      selectedDay != null &&
-                      showCake)
-                  ? 1.0
-                  : 0.0,
-              duration: const Duration(seconds: 1),
-              curve: Curves.easeInOut,
-              child: Icon(
-                FontAwesomeIcons.baby,
-                size: 420,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              ),
-            ),
             Positioned(
-              top: 170,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  backgroundColor: (selectedYear != null &&
+              top: 200,
+              child: SizedBox(
+                width: 250, // ปรับความกว้างของปุ่ม
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 50,
+                        vertical: 18), // ปรับขนาด padding ให้ใหญ่ขึ้น
+                    backgroundColor: Colors.white, // พื้นหลังสีขาว
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(12), // มุมโค้งขึ้นเล็กน้อย
+                    ),
+                    elevation: 5, // เพิ่มเงาเล็กน้อยให้ดูโดดเด่น
+                  ),
+                  onPressed: (selectedYear != null &&
                           selectedMonth != null &&
                           selectedDay != null)
-                      ? (Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black
-                          : Colors.white)
-                      : Colors.grey,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onPressed: (selectedYear != null &&
-                        selectedMonth != null &&
-                        selectedDay != null)
-                    ? () {
-                        // พิมพ์ค่าที่จะถูกส่ง
-                        print({
-                          'year': selectedYear,
-                          'month': selectedMonth,
-                          'day': selectedDay,
-                        });
-
-                        // ส่งค่าไปหน้า Description
-                        GoRouter.of(context).go(
-                          '/description',
-                          extra: {
+                      ? () {
+                          print({
                             'year': selectedYear,
                             'month': selectedMonth,
                             'day': selectedDay,
-                          },
-                        );
-                      }
-                    : null,
-                child: Text(
-                  AppLocalizations.of(context)!.nextButton,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: (selectedYear != null &&
-                            selectedMonth != null &&
-                            selectedDay != null)
-                        ? (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black)
-                        : Colors.white,
+                          });
+
+                          GoRouter.of(context).go(
+                            '/description',
+                            extra: {
+                              'year': selectedYear,
+                              'month': selectedMonth,
+                              'day': selectedDay,
+                            },
+                          );
+                        }
+                      : null,
+                  child: Text(
+                    AppLocalizations.of(context)!.nextButton,
+                    style: const TextStyle(
+                      fontSize: 20, // เพิ่มขนาดตัวหนังสือ
+                      color: Colors.black, // เปลี่ยนเป็นสีดำ
+                      fontWeight: FontWeight.bold, // ทำให้ตัวหนาขึ้น
+                    ),
                   ),
                 ),
               ),
